@@ -11,7 +11,7 @@ def readImages(Path,extension):
         return 0
 
     imgs = []
-    for file in os.listdir(Path):
+    for file in sorted(os.listdir(Path)):
         if file.endswith("." + extension):
             print "loading image " +  os.path.join(Path, file)
             image = cv2.imread(os.path.join(Path, file))
@@ -20,8 +20,8 @@ def readImages(Path,extension):
 
 
 
-def ConfusionMatrix( GroupA, GroupB):
-    if len(GroupA) != len(GroupB):
+def ConfusionMatrix( GT, Prediction):
+    if len(GT) != len(Prediction):
         print "Datasets does not have same size"
         return -1
     TP = 0
@@ -29,47 +29,39 @@ def ConfusionMatrix( GroupA, GroupB):
     FP = 0
     FN = 0
     print "Computing Confusion Matrix"
-    for img in range(len(GroupA)):
-        A_img = np.array(GroupA[img])
-        B_img = np.array(GroupB[img])
+    for img in range(len(GT)):
+        GT_img = np.array(GT[img])
+        Prediction_img = np.array(Prediction[img])
         print "Computing image: " + str(img)
-        for i in range(A_img.shape[0]):
-            for j in range(A_img.shape[1]):
-                A_value = A_img[i][j][0]
-                B_value = B_img[i][j][0]
-                if A_value > 0:
-                    A_value = 1
+        for i in range(GT_img.shape[0]):
+            for j in range(GT_img.shape[1]):
+                GT_value = GT_img[i][j][0]
+                Prediction_value = Prediction_img[i][j][0]
+                if GT_value >= 170:
+                    GT_value = 1
                 else:
-                    A_value = 0
-                if B_value > 0:
-                    B_value = 1
-                else:
-                    B_value = 0
-                if   1 == B_value and A_value == 1:
+                    GT_value = 0
+                if   1 == Prediction_value and GT_value == 1:
                     TP +=1
-                elif 0 == B_value and A_value == 0:
+                elif 0 == Prediction_value and GT_value == 0:
                     TN +=1
-                elif 1 == B_value and A_value == 0:
+                elif 1 == Prediction_value and GT_value == 0:
                     FP +=1
-                elif 0 == B_value and A_value == 1:
+                elif 0 == Prediction_value and GT_value == 1:
                     FN +=1
     return [TP,TN,FP,FN]
 
 def Metrics(TP,TN,FP,FN):
     print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
-    Accuracy   = ( float(TP) + float(TN) ) / ( float(TP) + float(TP) + float(FP) + float(FN) ) 
+    Accuracy   = ( float(TP) + float(TN) ) / ( float(TP) + float(TN) + float(FP) + float(FN) ) 
     Recall     = float(TP) / ( float(TP) + float(FN) ) 
     Precision  = float(TP) / ( float(TP) + float(FP) )
     F1         = 2 * float(Precision) * float(Recall) / ( float(Precision) + float(Recall) )
-    TruePRate  = float(TP) / ( float(TP) + float(FN) )
-    FalsePRate = float(FP) / ( float(TP) + float(FN) ) 
     print "Accuracy: "   + str(Accuracy   * 100)
     print "Recall: "     + str(Recall     * 100)
     print "Precision: "  + str(Precision  * 100)
     print "F1: "         + str(F1         * 100)
-    print "TruePRate: "  + str(TruePRate  * 100)
-    print "FalsePRate: " + str(FalsePRate * 100)
-    return Accuracy,Recall,Precision,F1,TruePRate,FalsePRate
+    return Accuracy,Recall,Precision,F1
 
 
 

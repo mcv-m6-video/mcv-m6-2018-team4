@@ -1,5 +1,6 @@
 import os
 import cv2
+import numpy as np
 
 def readImages(Path,extension):
     if extension == "" or ( extension != "jpg" and extension != "png" ) or not os.path.exists(Path):
@@ -19,26 +20,48 @@ def readImages(Path,extension):
 
 
 
-def Accuracy( classifier,descriptors,label_per_descriptor):
-    # get all the test data and predict their labels
-    numtestimages = 0
-    numcorrect = 0
-    PredictList = []
+def ConfusionMatrix( GroupA, GroupB):
+    if len(GroupA) != len(GroupB):
+        print "Datasets does not have same size"
+        return -1
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+    print "Computing Confusion Matrix"
+    for img in range(len(GroupA)):
+        A_img = np.array(GroupA[img])
+        B_img = np.array(GroupB[img])
+        for i in range(A_img.shape[0]):
+            for j in range(A_img.shape[1]):
+                if(A_img[i][j].all() == B_img[i][j].all() and A_img[i][j].all() == 1):
+                    TP +=1
+                else:
+                    if(A_img[i][j].all() == B_img[i][j].all() and A_img[i][j].all() == 0):
+                        TN +=1
+                    elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 0):
+                        FP +=1
+                    elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 1):
+                        FN +=1
+    return [TP,TN,FP,FN]
 
-    for i in range(len(descriptors)):
-        predictions    = classifier.predict(descriptors[i].reshape(1, -1))
-        values, counts = np.unique(predictions, return_counts=True)
-        predictedclass = values[np.argmax(counts)]
-        #print 'image ' + test_images_filenames[i] + ' was from class ' + test_labels[i] + ' and was predicted ' + predictedclass
-        numtestimages += 1
-        PredictList.append(predictedclass)
-        if Globalclassifier == "RF":
-            if predictedclass == int(GetKey(label_per_descriptor[i])):
-                numcorrect += 1
-        elif predictedclass == label_per_descriptor[i]:
-            numcorrect += 1
-    npPredictList = np.array(PredictList)
-    return numcorrect * 100.0 / numtestimages,npPredictList
+def Metrics(TP,TN,FP,FN):
+    print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
+    Accuracy   = TP + TN / ( TP + TN + FP + FN ) 
+    Recall     = TP / ( TP + FN ) 
+    Precision  = TP / ( TP + FP )
+    F1         = 2 * Precision * Recall / ( Precision + Recall )
+    TruePRate  = TP / ( TP + FN )
+    FalsePRate = FP / ( TP + FN ) 
+    print "Accuracy: "   + str(Accuracy)
+    print "Recall: "     + str(Recall)
+    print "Precision: "  + str(Precision)
+    print "F1: "         + str(F1)
+    print "TruePRate: "  + str(TruePRate)
+    print "FalsePRate: " + str(FalsePRate)
+    return Accuracy,Recall,Precision,F1,TruePRate,FalsePRate
+
+
 
 def ROCAndPRCurves(descriptors,label_per_descriptor,classifier):
     print "Plotting ROC curve"

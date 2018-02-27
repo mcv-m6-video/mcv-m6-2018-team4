@@ -1,8 +1,13 @@
 import os
 import cv2
 import numpy as np
+from sklearn.metrics import confusion_matrix
 
 def readImages(Path,extension):
+    """
+
+    :rtype: object
+    """
     if extension == "" or ( extension != "jpg" and extension != "png" ) or not os.path.exists(Path):
         print "Extension or path is invalid"
         return -1
@@ -19,6 +24,41 @@ def readImages(Path,extension):
     return imgs
 
 
+
+def getMetrics(imgs_mask, imgs_gt):
+
+    if len(imgs_mask) != len(imgs_gt):
+        print "Image vectors does not have same size"
+        return -1
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+
+    print "Computing Metrics"
+
+    for i in range(len(imgs_mask)):
+        mask = []
+        gt = []
+        for p in range(0, imgs_mask[i].size):
+            mask.append(imgs_mask[i].flat[p])
+        for p in range(0, imgs_gt[i].size):
+            gt.append(imgs_gt[i].flat[p])
+
+        gt[gt == 50] = 1
+        gt[gt == 85] = 1
+        gt[gt == 170] = 1
+        gt[gt == 255] = 1
+
+        confMat = confusion_matrix(gt, mask)
+
+        print confMat
+        FN += (confMat[1][1]+confMat[2][1]+confMat[3][1]+confMat[4][1])
+        TN += confMat[0][0]
+        FP += confMat[0][1]
+        FN += (confMat[1][0]+confMat[2][0]+confMat[3][0]+confMat[4][0])
+
+    return [TP,TN,FP,FN]
 
 def ConfusionMatrix( GroupA, GroupB):
     if len(GroupA) != len(GroupB):
@@ -43,6 +83,7 @@ def ConfusionMatrix( GroupA, GroupB):
                 elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 1):
                     FN +=1
     return [TP,TN,FP,FN]
+
 
 def Metrics(TP,TN,FP,FN):
     print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)

@@ -32,27 +32,27 @@ def ConfusionMatrix( GroupA, GroupB):
     for img in range(len(GroupA)):
         A_img = np.array(GroupA[img])
         B_img = np.array(GroupB[img])
+        print "Computing image: " + str(img)
         for i in range(A_img.shape[0]):
             for j in range(A_img.shape[1]):
-                for k in range(A_img.shape[2]):
-                    A_value = A_img[i][j][k]
-                    B_value = B_img[i][j][k]
-                    if A_value > 0:
-                        A_value = 1
-                    else:
-                        A_value = 0
-                    if B_value > 0:
-                        B_value = 1
-                    else:
-                        B_value = 0
-                    if   1 == B_value and A_value == 1:
-                        TP +=1
-                    elif 0 == B_value and A_value == 0:
-                        TN +=1
-                    elif 1 == B_value and A_value == 0:
-                        FP +=1
-                    elif 0 == B_value and A_value == 1:
-                        FN +=1
+                A_value = A_img[i][j][0]
+                B_value = B_img[i][j][0]
+                if A_value > 0:
+                    A_value = 1
+                else:
+                    A_value = 0
+                if B_value > 0:
+                    B_value = 1
+                else:
+                    B_value = 0
+                if   1 == B_value and A_value == 1:
+                    TP +=1
+                elif 0 == B_value and A_value == 0:
+                    TN +=1
+                elif 1 == B_value and A_value == 0:
+                    FP +=1
+                elif 0 == B_value and A_value == 1:
+                    FN +=1
     return [TP,TN,FP,FN]
 
 def Metrics(TP,TN,FP,FN):
@@ -63,12 +63,12 @@ def Metrics(TP,TN,FP,FN):
     F1         = 2 * float(Precision) * float(Recall) / ( float(Precision) + float(Recall) )
     TruePRate  = float(TP) / ( float(TP) + float(FN) )
     FalsePRate = float(FP) / ( float(TP) + float(FN) ) 
-    print "Accuracy: "   + str(Accuracy)
-    print "Recall: "     + str(Recall)
-    print "Precision: "  + str(Precision)
-    print "F1: "         + str(F1)
-    print "TruePRate: "  + str(TruePRate)
-    print "FalsePRate: " + str(FalsePRate)
+    print "Accuracy: "   + str(Accuracy   * 100)
+    print "Recall: "     + str(Recall     * 100)
+    print "Precision: "  + str(Precision  * 100)
+    print "F1: "         + str(F1         * 100)
+    print "TruePRate: "  + str(TruePRate  * 100)
+    print "FalsePRate: " + str(FalsePRate * 100)
     return Accuracy,Recall,Precision,F1,TruePRate,FalsePRate
 
 

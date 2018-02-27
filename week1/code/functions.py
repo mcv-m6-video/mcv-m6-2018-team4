@@ -36,23 +36,22 @@ def ConfusionMatrix( GroupA, GroupB):
             for j in range(A_img.shape[1]):
                 if(A_img[i][j].all() == B_img[i][j].all() and A_img[i][j].all() == 1):
                     TP +=1
-                else:
-                    if(A_img[i][j].all() == B_img[i][j].all() and A_img[i][j].all() == 0):
-                        TN +=1
-                    elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 0):
-                        FP +=1
-                    elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 1):
-                        FN +=1
+                elif(A_img[i][j].all() == B_img[i][j].all() and A_img[i][j].all() == 0):
+                    TN +=1
+                elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 0):
+                    FP +=1
+                elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 1):
+                    FN +=1
     return [TP,TN,FP,FN]
 
 def Metrics(TP,TN,FP,FN):
     print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
-    Accuracy   = TP + TN / ( TP + TN + FP + FN ) 
-    Recall     = TP / ( TP + FN ) 
-    Precision  = TP / ( TP + FP )
-    F1         = 2 * Precision * Recall / ( Precision + Recall )
-    TruePRate  = TP / ( TP + FN )
-    FalsePRate = FP / ( TP + FN ) 
+    Accuracy   = double(TP) + double(TN) / ( double(TP) + double(TN) + double(FP) + double(FN) ) 
+    Recall     = double(TP) / ( double(TP) + double(FN) ) 
+    Precision  = double(TP) / ( double(TP) + double(FP) )
+    F1         = 2 * double(Precision) * double(Recall) / ( double(Precision) + double(Recall) )
+    TruePRate  = double(TP) / ( double(TP) + double(FN) )
+    FalsePRate = double(FP) / ( double(TP) + double(FN) ) 
     print "Accuracy: "   + str(Accuracy)
     print "Recall: "     + str(Recall)
     print "Precision: "  + str(Precision)

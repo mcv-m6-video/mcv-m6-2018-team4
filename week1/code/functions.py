@@ -74,25 +74,36 @@ def ConfusionMatrix( GroupA, GroupB):
         B_img = np.array(GroupB[img])
         for i in range(A_img.shape[0]):
             for j in range(A_img.shape[1]):
-                if(A_img[i][j].all() == B_img[i][j].all() and A_img[i][j].all() == 1):
-                    TP +=1
-                elif(A_img[i][j].all() == B_img[i][j].all() and A_img[i][j].all() == 0):
-                    TN +=1
-                elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 0):
-                    FP +=1
-                elif(A_img[i][j].all() != B_img[i][j].all() and A_img[i][j].all() == 1):
-                    FN +=1
+                for k in range(A_img.shape[2]):
+                    A_value = A_img[i][j][k]
+                    B_value = B_img[i][j][k]
+                    if A_value > 0:
+                        A_value = 1
+                    else:
+                        A_value = 0
+                    if B_value > 0:
+                        B_value = 1
+                    else:
+                        B_value = 0
+                    if   1 == B_value and A_value == 1:
+                        TP +=1
+                    elif 0 == B_value and A_value == 0:
+                        TN +=1
+                    elif 1 == B_value and A_value == 0:
+                        FP +=1
+                    elif 0 == B_value and A_value == 1:
+                        FN +=1
     return [TP,TN,FP,FN]
 
 
 def Metrics(TP,TN,FP,FN):
     print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
-    Accuracy   = double(TP) + double(TN) / ( double(TP) + double(TN) + double(FP) + double(FN) ) 
-    Recall     = double(TP) / ( double(TP) + double(FN) ) 
-    Precision  = double(TP) / ( double(TP) + double(FP) )
-    F1         = 2 * double(Precision) * double(Recall) / ( double(Precision) + double(Recall) )
-    TruePRate  = double(TP) / ( double(TP) + double(FN) )
-    FalsePRate = double(FP) / ( double(TP) + double(FN) ) 
+    Accuracy   = ( float(TP) + float(TN) ) / ( float(TP) + float(TP) + float(FP) + float(FN) ) 
+    Recall     = float(TP) / ( float(TP) + float(FN) ) 
+    Precision  = float(TP) / ( float(TP) + float(FP) )
+    F1         = 2 * float(Precision) * float(Recall) / ( float(Precision) + float(Recall) )
+    TruePRate  = float(TP) / ( float(TP) + float(FN) )
+    FalsePRate = float(FP) / ( float(TP) + float(FN) ) 
     print "Accuracy: "   + str(Accuracy)
     print "Recall: "     + str(Recall)
     print "Precision: "  + str(Precision)

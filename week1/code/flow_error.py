@@ -8,9 +8,10 @@ sequences = ['000157']  # '000157','000045'
 E_list = []
 for s in sequences:
     # Read flow images
-    F_est = flow_read(os.path.join('..', 'results', 'data_stereo_flow', 'LKflow_' + s + '_10.png'))
+    F_est = flow_read(os.path.join('..', 'results', 'data_stereo_flow', 'LKflow_' + s + '_10.png'), s, True)
+    print s 
     F_gt = flow_read(
-        os.path.join('..', '..', '..', 'Datasets', 'data_stereo_flow', 'training', 'flow_noc', s + '_10.png'))
+        os.path.join('..', '..', 'Datasets', 'data_stereo_flow', 'training', 'flow_noc', s + '_10.png'), s, True)
 
     # Compute the error map (error at each point)
     # F_val contains the booleans marking the non-occluded pixels

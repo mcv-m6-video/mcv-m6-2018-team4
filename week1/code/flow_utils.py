@@ -1,8 +1,10 @@
+import os
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
-
-def flow_read(filename):
+def flow_read(filename, sequence=None, plot_flow=False):
     # loads flow field F from png file
 
     # Read the image
@@ -11,11 +13,14 @@ def flow_read(filename):
     I = cv2.imread(filename, -1)
 
     # Representation:
-    #   Vector of flow (u,v)
+    #   Vector of flow (u,v), plot_flow=False, 
     #   Boolean if pixel has a valid value (is not an occlusion)
     F_u = (I[:, :, 2] - 2. ** 15) / 64
     F_v = (I[:, :, 1] - 2. ** 15) / 64
     F_valid = I[:, :, 0]
+
+    if plot_flow:
+        optical_flow_plot(F_u, F_v, filename, sequence)
 
     # Matrix with vector (u,v) in the channel 0 and 1 and boolean valid in channel 2
     return np.transpose(np.array([F_u, F_v, F_valid]), axes=[1, 2, 0])
@@ -35,29 +40,25 @@ def flow_error_map(F_gt, F_est):
 
     return (E, F_gt_val)
 
+def optical_flow_plot(u, v, filename, sequence):
+    print 'filename'
+    print filename
+    I = cv2.imread(filename, -1)
+    a, b, c = I.shape
 
-def flow_error_image(F_gt, F_est, tau, dilate_radius=1):
-    (E, F_val) = flow_error_map(F_gt, F_est)
-    F_mag = np.sqrt(F_gt[:, :, 0] ** 2 + F_gt[:, :, 1] ** 2)
-    aux = E / F_mag
-    aux[np.isnan(aux)] = np.inf
-    E_im = np.minimum(E / tau[0], aux / tau[1])
-    return E_im / np.max(E_im) * 255
+    F_u = u[0::10, 0::10]
+    F_v = v[0::10, 0::10]
 
-    ''' MATLAB Code
-    [E,F_val] = flow_error_map (F_gt,F_est);
-    F_mag = sqrt(F_gt(:,:,1).*F_gt(:,:,1)+F_gt(:,:,2).*F_gt(:,:,2));
-    E = min(E/tau(1),(E./F_mag)/tau(2));
-    
-    cols = error_colormap();
-    
-    F_err = zeros(size(F_gt));
-    for i=1:size(cols,1)
-      [v,u] = find(F_val > 0 & E >= cols(i,1) & E <= cols(i,2));
-      F_err(sub2ind(size(F_err),v,u,1*ones(length(v),1))) = cols(i,3);
-      F_err(sub2ind(size(F_err),v,u,2*ones(length(v),1))) = cols(i,4);
-      F_err(sub2ind(size(F_err),v,u,3*ones(length(v),1))) = cols(i,5);
-    end
-    
-    F_err = imdilate(F_err,strel('disk',dilate_radius));
-    '''
+    # F_u = np.reshape(u, (a,b))
+    # F_v = np.reshape(v, (a,b))
+    # x,y = np.meshgrid(np.arange(0,b,1), np.arange(0,a,1))
+    # F_u = F_u[0::10, 0::10]
+    # F_v = F_v[0::10, 0::10]
+    # plt.imshow(mpimg.imread(os.path.join('..', '..', 'Datasets', 'data_stereo_flow', 
+                                        # 'training', 'image_0', sequence + '_10.png')))
+
+    img = cv2.imread(os.path.join('..', '..', 'Datasets', 'data_stereo_flow', 
+                                        'training', 'image_0', sequence + '_10.png'))
+    # plt.imshow(img)
+    plt.quiver(F_u, F_v, color='red')
+    plt.show()

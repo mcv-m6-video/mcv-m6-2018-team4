@@ -1,9 +1,15 @@
 # Week 1
 - **Task 1:** Segmentation metrics. Understand precision & recall.
+  - code/main.py: launcher of the tasks.
+  - code/main.py: functions for reading the data and evaluate the results.
 - **Task 2:** Segmentation metrics. Temporal analysis.
+  - code/main.py: launcher of the task
+  - code/functions.py: plotGraphics() function for do the necessary graphics.
 - **Task 3:** Optical flow evaluation metrics.
   - code/flow_error.py: MSEN and PEPN.
   - code/flow_error_plot.py: error image and histogram.
   - code/flow_utils.py: useful functions to work with flow.
 - **Task 4:** De-synchornized results.
+  - code/main.py: launcher of the task.
+  - code/functions.py: ConfusionMatrixDesync() function that computes the necessary metrics with different levels of delay.
 - **Task 5:** Visual representation optical flow.

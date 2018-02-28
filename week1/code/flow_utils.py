@@ -46,19 +46,17 @@ def optical_flow_plot(u, v, filename, sequence):
     I = cv2.imread(filename, -1)
     a, b, c = I.shape
 
-    F_u = u[0::10, 0::10]
-    F_v = v[0::10, 0::10]
+    # F_u = u[0::10, 0::10]
+    # F_v = v[0::10, 0::10]
 
     # F_u = np.reshape(u, (a,b))
     # F_v = np.reshape(v, (a,b))
-    # x,y = np.meshgrid(np.arange(0,b,1), np.arange(0,a,1))
-    # F_u = F_u[0::10, 0::10]
-    # F_v = F_v[0::10, 0::10]
-    # plt.imshow(mpimg.imread(os.path.join('..', '..', 'Datasets', 'data_stereo_flow', 
-                                        # 'training', 'image_0', sequence + '_10.png')))
+    x,y = np.meshgrid(np.arange(0,b,1), np.arange(0,a,1))
+    plt.imshow(mpimg.imread(os.path.join('..', '..', 'Datasets', 'data_stereo_flow', 
+                                        'training', 'image_0', sequence + '_10.png')), cmap='gray')
 
     img = cv2.imread(os.path.join('..', '..', 'Datasets', 'data_stereo_flow', 
                                         'training', 'image_0', sequence + '_10.png'))
-    # plt.imshow(img)
-    plt.quiver(F_u, F_v, color='red')
+
+    plt.quiver(x[::10, ::10], y[::10, ::10], u[::10,::10], v[::10,::10], color='red', pivot='mid')
     plt.show()

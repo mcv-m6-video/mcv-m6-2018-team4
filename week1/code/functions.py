@@ -67,22 +67,24 @@ def ConfusionMatrix( GT, Prediction):
                 elif 0 == Prediction_value and GT_value == 1:
                     FN  +=1
                     FNF +=1
-                #AF,RF,PF,F1F = Metrics(TP,TN,FP,FN)
+        AF,RF,PF,F1F = Metrics(TPF,TNF,FPF,FNF,False)
         TPFv.append(TPF)
         TPGTv.append(TPFGT)
-        #F1v.append(F1F)
-    return [TP,TN,FP,FN],TPFv,TPGTv
+        F1v.append(F1F)
+    return [TP,TN,FP,FN],TPFv,TPGTv,F1v
 
-def Metrics(TP,TN,FP,FN):
-    print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
+def Metrics(TP,TN,FP,FN,show=True):
+    if show:
+        print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
     Accuracy   = ( float(TP) + float(TN) ) / ( float(TP) + float(TN) + float(FP) + float(FN) ) 
     Recall     = float(TP) / ( float(TP) + float(FN) ) 
     Precision  = float(TP) / ( float(TP) + float(FP) )
     F1         = 2 * float(Precision) * float(Recall) / ( float(Precision) + float(Recall) )
-    print "Accuracy: "   + str(Accuracy   * 100)
-    print "Recall: "     + str(Recall     * 100)
-    print "Precision: "  + str(Precision  * 100)
-    print "F1: "         + str(F1         * 100)
+    if show:
+        print "Accuracy: "   + str(Accuracy   * 100)
+        print "Recall: "     + str(Recall     * 100)
+        print "Precision: "  + str(Precision  * 100)
+        print "F1: "         + str(F1         * 100)
     return Accuracy,Recall,Precision,F1
 
 def showMultipleGraphic(x,y,label,labelx1,labelx2):

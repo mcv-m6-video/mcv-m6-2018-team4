@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 
 
 class GaussianModelling:
-    def __init__(self, alpha=.05, adaptive_ratio=0):
+    def __init__(self, alpha=.05, adaptive_ratio=0, grayscale_modelling=True):
         self.alpha = alpha
         self.adaptive_ratio = adaptive_ratio
+        self.grayscale_modelling = grayscale_modelling
 
     def fit(self, X):
-        # If input images are in BGR color
-        if np.shape(X)[-1] == 3:
+        # If input images are in BGR color and grayscale modelling is enabled
+        if np.shape(X)[-1] == 3 and self.grayscale_modelling:
             # Save gray images in a new array
             Xorig = X
             X = np.empty(np.shape(X)[:3])
@@ -33,42 +34,47 @@ class GaussianModelling:
     def predict(self, X):
         y = np.empty(np.shape(X)[:3])
         for i in range(len(X)):
-            # Convert frame from BGR to GRAY
-            if X[i].shape[-1] == 3:
+            # If input images are in BGR color and grayscale modelling is enabled
+            if np.shape(X)[-1] == 3 and self.grayscale_modelling:
+                # Convert to grayscale
                 im = cv2.cvtColor(X[i], cv2.COLOR_BGR2GRAY)
+                # Segment frame
+                y[i] = np.abs(im - self.mean) >= self.alpha * (self.std + 2)
             else:
                 im = X[i]
-
-            # Segment frame
-            y[i] = np.abs(im - self.mean) >= self.alpha * (self.std + 2)
+                # Segment frame
+                y[i] = np.all(np.abs(im - self.mean) >= self.alpha * (self.std + 2), axis=2)
 
             # Adapt the mean and std (Adaptive Gaussian Modelling)
             self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
-            self.std = np.sqrt((1 - self.adaptive_ratio) * np.power(self.std,2) + self.adaptive_ratio * np.power(im - self.mean,2))
-            # plt.clf()
-            #plt.imshow(y[i],cmap='gray')
-            #plt.hold(True)
-            #plt.show()
+            self.std = np.sqrt(
+                (1 - self.adaptive_ratio) * np.power(self.std, 2) + self.adaptive_ratio * np.power(im - self.mean, 2))
+
+            # plt.imshow(y[i],cmap='gray')
+            # plt.show()
 
         return y
 
     def predict_probabilities(self, X):
         y = np.empty(np.shape(X)[:3])
         for i in range(len(X)):
-            # Convert frame from BGR to GRAY
-            if X[i].shape[-1] == 3:
+            # If input images are in BGR color and grayscale modelling is enabled
+            if np.shape(X)[-1] == 3 and self.grayscale_modelling:
+                # Convert to grayscale
                 im = cv2.cvtColor(X[i], cv2.COLOR_BGR2GRAY)
+                # Segment frame
+                y[i] = np.abs(im - self.mean) / (self.std + 2)
             else:
                 im = X[i]
+                # Segment frame
+                y[i] = np.all(np.abs(im - self.mean) / (self.std + 2), axis=2)
 
-            # Segment frame
-            y[i] = np.abs(im - self.mean) / (self.std + 2)
-
-            # Adapt the mean and std (Adaptive Gaussian Modelling)
+                # Adapt the mean and std (Adaptive Gaussian Modelling)
             self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
-            self.std = np.sqrt((1 - self.adaptive_ratio) * np.power(self.std, 2) + self.adaptive_ratio * np.power(im - self.mean, 2))
+            self.std = np.sqrt(
+                (1 - self.adaptive_ratio) * np.power(self.std, 2) + self.adaptive_ratio * np.power(im - self.mean, 2))
 
-            # plt.clf()
             # plt.imshow(y[i],cmap='gray')
-            # plt.hold(True)
             # plt.show()
+
+        return y

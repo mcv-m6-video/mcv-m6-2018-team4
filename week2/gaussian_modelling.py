@@ -44,18 +44,10 @@ class GaussianModelling:
 
             # Adapt the mean and std (Adaptive Gaussian Modelling)
             self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
-<<<<<<< HEAD
             self.std = (1 - self.adaptive_ratio) * self.std + self.adaptive_ratio * np.abs(im - self.mean)
             # plt.clf()
             #plt.imshow(y[i],cmap='gray')
             #plt.hold(True)
             #plt.show()
-=======
-            self.var = (1 - self.adaptive_ratio) * self.var + self.adaptive_ratio * ((im - self.mean) ** 2)
-            # plt.clf()
-            # plt.imshow(y[i],cmap='gray')
-            # plt.hold(True)
-            # plt.show()
->>>>>>> 492e8369ce93c733aa607e96e3f59cdb36404875
 
         return y

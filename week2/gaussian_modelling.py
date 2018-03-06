@@ -44,7 +44,7 @@ class GaussianModelling:
 
             # Adapt the mean and std (Adaptive Gaussian Modelling)
             self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
-            self.std = (1 - self.adaptive_ratio) * self.std + self.adaptive_ratio * np.abs(im - self.mean)
+            self.std = np.sqrt((1 - self.adaptive_ratio) * np.power(self.std,2) + self.adaptive_ratio * np.power(im - self.mean,2))
             # plt.clf()
             #plt.imshow(y[i],cmap='gray')
             #plt.hold(True)

@@ -76,8 +76,8 @@ def f1score_alpha(train, test, test_GT):
 
 def grid_search(train, test, test_GT):
     # Task 1.3 - F1-score vs Alpha
-    alpha_range = np.arange(0, 3, 0.1)
-    ro_range = np.arange(0, 1, 0.03)
+    alpha_range = np.arange(1, 2.5, 0.1)
+    ro_range = np.arange(0, 0.5, 0.03)
 
     f1_matrix = np.zeros([len(alpha_range),len(ro_range)])
 

@@ -2,6 +2,7 @@ import cv2
 import functions as fc
 import numpy as np
 import os
+import time
 
 
 def main():
@@ -13,15 +14,24 @@ def main():
     # TASK 1.1 - Background Substraction Evaluation
 
     # test A
-    A_CMatrix, TPFv_A, TPGTv_A, F1v_A = fc.ConfusionMatrix(ori_imgs, A_imgs)
-    A_Metrics = fc.Metrics(A_CMatrix[0], A_CMatrix[1], A_CMatrix[2], A_CMatrix[3])
+    t = time.time()
+    A_CMatrix = fc.ConfusionMatrix(ori_imgs, A_imgs)
+    A_Metrics = fc.Metrics(A_CMatrix)
+    elapsed = time.time() - t
+    print('Elapsed time is ' + str(elapsed) + ' seconds')
 
     # test B
-    B_CMatrix, TPFv_B, TPGTv_B, F1v_B = fc.ConfusionMatrix(ori_imgs, B_imgs)
-    B_Metrics = fc.Metrics(B_CMatrix[0], B_CMatrix[1], B_CMatrix[2], B_CMatrix[3])
+    t = time.time()
+    B_CMatrix = fc.ConfusionMatrix_2(ori_imgs, B_imgs)
+    B_Metrics = fc.Metrics_2(B_CMatrix)
+    elapsed = time.time() - t
+    print('Elapsed time is ' + str(elapsed) + ' seconds')
 
 
     # TASK 2.1 - Plot TP vs Time
+    A_CMatrix, TPFv_A, TPGTv_A, F1v_A = fc.ConfusionMatrix(ori_imgs, A_imgs)
+    B_CMatrix, TPFv_B, TPGTv_B, F1v_B = fc.ConfusionMatrix(ori_imgs, B_imgs)
+
     x = [np.arange(0, 200, 1), np.arange(0, 200, 1), np.arange(0, 200, 1)]
     y = [np.array(TPFv_A), np.array(TPFv_B), np.array(TPGTv_A)]
     axis = ["Time", "#Pixels"]

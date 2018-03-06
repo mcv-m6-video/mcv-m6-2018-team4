@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 def readImages(Path, extension):
     if extension == "" or (extension != "jpg" and extension != "png") or not os.path.exists(Path):
@@ -20,6 +21,67 @@ def readImages(Path, extension):
     return imgs
 
 def ConfusionMatrix(GT, Prediction):
+    if len(GT) != len(Prediction):
+        print "Datasets does not have same size"
+        return -1
+
+    img_shape = np.shape(Prediction[0])
+    conf_matrix = np.zeros((2,2,len(Prediction)))
+
+    print "Computing Confusion Matrix"
+    for img in range(len(GT)):
+        GT_img = np.array(GT[img])
+        Prediction_img = np.array(Prediction[img])
+
+        print "Computing image: " + str(img)
+        Prediction_img = Prediction_img[:,:,0]
+        Prediction_img_v = Prediction_img.reshape((img_shape[0]*img_shape[1]))
+        GT_img = GT_img[:,:,0]
+        GT_img_v = GT_img.reshape((img_shape[0]*img_shape[1]))
+        GT_img_v = GT_img_v>=170
+
+        conf_matrix[:,:,img] = confusion_matrix(GT_img_v, Prediction_img_v)
+
+    return conf_matrix
+
+def Metrics(conf_matrix, show=True):
+    conf_matrix_total = np.sum(conf_matrix,axis=2)
+    TN = conf_matrix_total[0,0]
+    TP = conf_matrix_total[1,1]
+    FP = conf_matrix_total[0,1]
+    FN = conf_matrix_total[1,0]
+
+    if show:
+        print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
+    Accuracy = (float(TP) + float(TN)) / (float(TP) + float(TN) + float(FP) + float(FN))
+    Recall = float(TP) / (float(TP) + float(FN))
+
+    if ((float(TP) + float(FP)) > 0):
+        Precision = float(TP) / (float(TP) + float(FP))
+    else:
+        Precision = 0
+
+    if ((float(Precision) + float(Recall)) > 0):
+        F1 = 2 * float(Precision) * float(Recall) / (float(Precision) + float(Recall))
+    else:
+        F1 = 0
+
+    if show:
+        print "Accuracy: " + str(Accuracy * 100)
+        print "Recall: " + str(Recall * 100)
+        print "Precision: " + str(Precision * 100)
+        print "F1: " + str(F1 * 100)
+    return Accuracy, Recall, Precision, F1
+
+def plotGraphics(x, y, axis, labels):
+    for i in range(len(labels)):
+        plt.plot(x[i], y[i], label=labels[i])
+    plt.xlabel(axis[0])
+    plt.ylabel(axis[1])
+    plt.legend()
+    plt.show()
+
+def ConfusionMatrix_own(GT, Prediction):
     if len(GT) != len(Prediction):
         print "Datasets does not have same size"
         return -1
@@ -69,6 +131,29 @@ def ConfusionMatrix(GT, Prediction):
         TPGTv.append(TPFGT)
         F1v.append(F1F)
     return [TP, TN, FP, FN], TPFv, TPGTv, F1v
+
+def Metrics_own(TP, TN, FP, FN, show=True):
+    if show:
+        print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
+    Accuracy = (float(TP) + float(TN)) / (float(TP) + float(TN) + float(FP) + float(FN))
+    Recall = float(TP) / (float(TP) + float(FN))
+
+    if ((float(TP) + float(FP)) > 0):
+        Precision = float(TP) / (float(TP) + float(FP))
+    else:
+        Precision = 0
+
+    if ((float(Precision) + float(Recall)) > 0):
+        F1 = 2 * float(Precision) * float(Recall) / (float(Precision) + float(Recall))
+    else:
+        F1 = 0
+
+    if show:
+        print "Accuracy: " + str(Accuracy * 100)
+        print "Recall: " + str(Recall * 100)
+        print "Precision: " + str(Precision * 100)
+        print "F1: " + str(F1 * 100)
+    return Accuracy, Recall, Precision, F1
 
 def ConfusionMatrixDesync(GT, Prediction):
     if len(GT) != len(Prediction):
@@ -125,37 +210,6 @@ def ConfusionMatrixDesync(GT, Prediction):
         vDelay.append([[TP, TN, FP, FN], TPFv, TPGTv, F1v])
 
     return vDelay
-
-def Metrics(TP, TN, FP, FN, show=True):
-    if show:
-        print "Computing Metrics with TP: " + str(TP) + " TN: " + str(TN) + " FP: " + str(FP) + " FN: " + str(FN)
-    Accuracy = (float(TP) + float(TN)) / (float(TP) + float(TN) + float(FP) + float(FN))
-    Recall = float(TP) / (float(TP) + float(FN))
-
-    if ((float(TP) + float(FP)) > 0):
-        Precision = float(TP) / (float(TP) + float(FP))
-    else:
-        Precision = 0
-
-    if ((float(Precision) + float(Recall)) > 0):
-        F1 = 2 * float(Precision) * float(Recall) / (float(Precision) + float(Recall))
-    else:
-        F1 = 0
-
-    if show:
-        print "Accuracy: " + str(Accuracy * 100)
-        print "Recall: " + str(Recall * 100)
-        print "Precision: " + str(Precision * 100)
-        print "F1: " + str(F1 * 100)
-    return Accuracy, Recall, Precision, F1
-
-def plotGraphics(x, y, axis, labels):
-    for i in range(len(labels)):
-        plt.plot(x[i], y[i], label=labels[i])
-    plt.xlabel(axis[0])
-    plt.ylabel(axis[1])
-    plt.legend()
-    plt.show()
 
 def showMultipleGraphic(x, y, label, labelx1, labelx2):
     plt.plot(x[0], y[0], label=labelx1)

@@ -2,7 +2,8 @@ import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, precision_recall_curve, roc_auc_score
+from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, precision_recall_curve, roc_auc_score, \
+    auc
 import sys
 from gaussian_modelling import GaussianModelling
 import time
@@ -43,15 +44,16 @@ def getMetrics(GT, Prediction):
 
     return metrics
 
-def getAUC(GT, Prediction):
+def getPR_AUC(GT, Score):
     test_GT_v = np.array(GT)[:, :, :, 0].flatten()
     y_true = (test_GT_v == 255)
 
-    y_predicted = np.array(Prediction).flatten()
+    y_score = np.array(Score).flatten()
 
-    metrics = roc_auc_score(y_true, y_predicted)
+    precision, recall, _ = precision_recall_curve(y_true, y_score)
+    auc_val = auc(recall, precision)
 
-    return metrics
+    return precision, recall, auc_val
 
 def plotGraphics(x, y, axis, labels):
     if len(labels)>1:

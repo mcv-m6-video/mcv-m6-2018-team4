@@ -7,7 +7,6 @@ import os
 import time
 from dataset import Dataset
 from gaussian_modelling import GaussianModelling
-import sys
 
 
 def main():

@@ -9,7 +9,6 @@ from dataset import Dataset
 from gaussian_modelling import GaussianModelling
 from matplotlib import animation
 import matplotlib.pyplot as plt
-import sys
 
 def main():
 

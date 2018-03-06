@@ -51,3 +51,24 @@ class GaussianModelling:
             #plt.show()
 
         return y
+
+    def predict_probabilities(self, X):
+        y = np.empty(np.shape(X)[:3])
+        for i in range(len(X)):
+            # Convert frame from BGR to GRAY
+            if X[i].shape[-1] == 3:
+                im = cv2.cvtColor(X[i], cv2.COLOR_BGR2GRAY)
+            else:
+                im = X[i]
+
+            # Segment frame
+            y[i] = np.abs(im - self.mean) / (self.std + 2)
+
+            # Adapt the mean and std (Adaptive Gaussian Modelling)
+            self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
+            self.std = np.sqrt((1 - self.adaptive_ratio) * np.power(self.std, 2) + self.adaptive_ratio * np.power(im - self.mean, 2))
+
+            # plt.clf()
+            # plt.imshow(y[i],cmap='gray')
+            # plt.hold(True)
+            # plt.show()

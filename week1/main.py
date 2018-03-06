@@ -3,12 +3,17 @@ import functions as fc
 import numpy as np
 import os
 import time
-
+from dataset import Dataset
 
 def main():
-    ori_imgs = fc.readImages("../Datasets/highway/groundtruth", "png")
-    A_imgs = fc.readImages("results/highway/A", "png")
-    B_imgs = fc.readImages("results/highway/B", "png")
+
+    dataset = Dataset('highway',1,20)
+    imgs = dataset.readInput()
+    imgs_GT = dataset.readGT()
+
+    # ori_imgs = fc.readImages("../../Datasets/highway/groundtruth", "png")
+    # A_imgs = fc.readImages("results/highway/A", "png")
+    # B_imgs = fc.readImages("results/highway/B", "png")
 
 
     # TASK 1.1 - Background Substraction Evaluation

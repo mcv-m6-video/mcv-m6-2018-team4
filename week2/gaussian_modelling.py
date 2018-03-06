@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class GaussianModelling:
-    def __init__(self, alpha=.05, adaptive_ratio=0):
+    def __init__(self, alpha=1.8, adaptive_ratio=0):
         self.alpha = alpha
         self.adaptive_ratio = adaptive_ratio
 
@@ -72,3 +72,5 @@ class GaussianModelling:
             # plt.imshow(y[i],cmap='gray')
             # plt.hold(True)
             # plt.show()
+
+        return y

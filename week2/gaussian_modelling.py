@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class GaussianModelling:
-    def __init__(self, alpha=1, adaptive_ratio=0):
+    def __init__(self, alpha=.05, adaptive_ratio=0):
         self.alpha = alpha
         self.adaptive_ratio = adaptive_ratio
 
@@ -21,7 +21,7 @@ class GaussianModelling:
 
         # Compute mean and std
         self.mean = np.mean(X, axis=0)
-        self.var = np.var(X - self.mean, axis=0)
+        self.std = np.std(X - self.mean, axis=0)
 
         # plt.imshow(self.mean,cmap='gray')
         # plt.figure()
@@ -40,14 +40,22 @@ class GaussianModelling:
                 im = X[i]
 
             # Segment frame
-            y[i] = np.abs(im - self.mean) >= self.alpha * (self.var + 2)
+            y[i] = np.abs(im - self.mean) >= self.alpha * (self.std + 2)
 
             # Adapt the mean and std (Adaptive Gaussian Modelling)
             self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
+<<<<<<< HEAD
+            self.std = (1 - self.adaptive_ratio) * self.std + self.adaptive_ratio * np.abs(im - self.mean)
+            # plt.clf()
+            #plt.imshow(y[i],cmap='gray')
+            #plt.hold(True)
+            #plt.show()
+=======
             self.var = (1 - self.adaptive_ratio) * self.var + self.adaptive_ratio * ((im - self.mean) ** 2)
             # plt.clf()
             # plt.imshow(y[i],cmap='gray')
             # plt.hold(True)
             # plt.show()
+>>>>>>> 492e8369ce93c733aa607e96e3f59cdb36404875
 
         return y

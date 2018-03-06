@@ -4,18 +4,24 @@ import matplotlib.pyplot as plt
 
 
 class GaussianModelling:
-    def __init__(self, alpha=1):
+    def __init__(self, alpha=1, adaptive_ratio=0):
         self.alpha = alpha
+        self.adaptive_ratio = adaptive_ratio
 
     def fit(self, X):
-        # Convert from BGR to GRAY
+        # If input images are in BGR color
         if np.shape(X)[-1] == 3:
-            for i in range(len(X)):
-                X[i] = cv2.cvtColor(X[i], cv2.COLOR_BGR2GRAY)
+            # Save gray images in a new array
+            Xorig = X
+            X = np.empty(np.shape(X)[:3])
+
+            # Convert from BGR to GRAY
+            for i in range(len(Xorig)):
+                X[i] = cv2.cvtColor(Xorig[i], cv2.COLOR_BGR2GRAY)
 
         # Compute mean and std
         self.mean = np.mean(X, axis=0)
-        self.std = np.std(X - self.mean, axis=0)
+        self.var = np.var(X - self.mean, axis=0)
 
         # plt.imshow(self.mean,cmap='gray')
         # plt.figure()
@@ -25,16 +31,23 @@ class GaussianModelling:
         return self
 
     def predict(self, X):
-        y = np.empty(np.shape(X))
+        y = np.empty(np.shape(X)[:3])
         for i in range(len(X)):
             # Convert frame from BGR to GRAY
             if X[i].shape[-1] == 3:
-                X[i] = cv2.cvtColor(X[i], cv2.COLOR_BGR2GRAY)
+                im = cv2.cvtColor(X[i], cv2.COLOR_BGR2GRAY)
+            else:
+                im = X[i]
 
             # Segment frame
-            y[i] = np.abs(X[i] - self.mean) >= self.alpha * (self.std + 2)
+            y[i] = np.abs(im - self.mean) >= self.alpha * (self.var + 2)
 
-            # plt.imshow(y[i],cmap='gray')
-            # plt.show()
+            # Adapt the mean and std (Adaptive Gaussian Modelling)
+            self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
+            self.var = (1 - self.adaptive_ratio) * self.var + self.adaptive_ratio * ((im - self.mean) ** 2)
+            plt.clf()
+            plt.imshow(y[i],cmap='gray')
+            plt.hold(True)
+            plt.show()
 
         return y

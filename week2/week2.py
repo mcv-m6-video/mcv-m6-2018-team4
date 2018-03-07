@@ -17,9 +17,9 @@ from mpl_toolkits.mplot3d import Axes3D
 def main():
 
     # Read dataset
-    dataset = Dataset('highway',1051, 1350)
+    # dataset = Dataset('highway',1051, 1350)
     # dataset = Dataset('fall', 1461, 1560)
-    # dataset = Dataset('traffic', 951, 1050)
+    dataset = Dataset('traffic', 951, 1050)
 
     imgs = dataset.readInput()
     imgs_GT = dataset.readGT()
@@ -30,7 +30,7 @@ def main():
     test_GT = imgs_GT[len(imgs)/2:]
 
     # TASK 1.1
-    single_execution(train, test, test_GT, 1.9, 0.2)
+    # single_execution(train, test, test_GT, 1.8, 0.15)
 
     # TASK 1.2
     # f1score_alpha(train, test, test_GT)
@@ -61,7 +61,7 @@ def single_execution(train, test, test_GT, alpha, ro):
 
 def f1score_alpha(train, test, test_GT):
     # Task 1.2 - F1-score vs Alpha
-    alpha_range = np.around(np.arange(0,7,0.1),decimals=2)
+    alpha_range = np.around(np.arange(1.5,2.5,0.1),decimals=2)
 
     metrics_array = []
 
@@ -99,7 +99,7 @@ def precision_recall_curve(train, test, test_GT):
 
     sys.stdout.write('Computing Precision-Recall curve... ')
     # Background substraction
-    g = GaussianModelling()
+    g = GaussianModelling(adaptive_ratio=0.15,grayscale_modelling=False)
     g.fit(train)
     scores = g.predict_probabilities(test)
 
@@ -110,7 +110,7 @@ def precision_recall_curve(train, test, test_GT):
 
     plt.step(recall, precision, color='g', alpha=0.2, where='post')
     plt.fill_between(recall, precision, step='post', alpha=0.2, color='g')
-
+    print "AUC: "+ str(auc_val)
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.ylim([0.0, 1.0])
@@ -120,8 +120,8 @@ def precision_recall_curve(train, test, test_GT):
     plt.show()
 
 def grid_search(train, test, test_GT):
-    alpha_range = np.around(np.arange(3, 6, 0.01),decimals=2)
-    ro_range = np.around(np.arange(0, 0.5, 0.01),decimals=2)
+    alpha_range = np.around(np.arange(2.5, 4.52, 0.1),decimals=2)
+    ro_range = np.around(np.arange(0, 0.4, 0.05),decimals=2)
 
     f1_matrix = np.zeros([len(alpha_range),len(ro_range)])
 
@@ -153,7 +153,7 @@ def grid_search(train, test, test_GT):
     best_alpha = Y.flatten()[f1_max_idx]
     best_ro = X.flatten()[f1_max_idx]
 
-    print "F1: " + str(np.around(f1_max, decimals=4)) + " (alpha=" + str(best_alpha) + ", ro=" + str(best_ro)+")"
+    print "F1: " + str(np.around(f1_max, decimals=5)) + " (alpha=" + str(best_alpha) + ", ro=" + str(best_ro)+")"
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')

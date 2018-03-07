@@ -41,6 +41,7 @@ def getMetrics(GT, Prediction):
     y_true = (test_GT_v == 255)
 
     y_predicted = np.array(Prediction).flatten()
+    # y_predicted = (y_predicted == 255) # Descoment for SOTA
 
     metrics = precision_recall_fscore_support(y_true[valid_pixels], y_predicted[valid_pixels], average="binary",pos_label=1)
 

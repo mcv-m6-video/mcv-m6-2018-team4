@@ -13,8 +13,9 @@ varThreshold = 16        #16
 bShadowDetection = True;
 
 gif = False
-showFrames = True
-PR_curve = True
+showFrames = False
+PR_curve = False
+Metrics = True
 
 def main():
     # Read dataset
@@ -66,6 +67,10 @@ def main():
         print recall
         print 'Area under the curve '
         print auc_val
+
+    if Metrics is True:
+        metrics = ev.getMetrics(imgs_GT, substracted)
+        print metrics
 
     if gif is True:
         fig = plt.figure()

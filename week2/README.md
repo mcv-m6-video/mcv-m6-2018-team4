@@ -5,13 +5,13 @@
 - **Task 1:** Gaussian distribution
   - gaussian_modelling.py: class that implements the gaussian model background substraction
   - week2.py: Launcher of the task 1.1 (single_execution() function).
-  - week2.py: Launcher of the task 1.2-1.3 (f1score_alpha() and precision_recall_curve() functions for evaluation). graphics.
+  - week2.py: Launcher of the task 1.2-1.3 (f1score_alpha() and precision_recall_curve() functions for evaluation).
 - **Task 2:** Adaptive modelling.
   - gaussian_modelling.py: class that implements the gaussian model background substraction (use 'adaptative_ratio' parameter)
   - week2.py: Launcher of the task 2.1 (single_execution() function).
-  - week2.py: Launcher of the task 2.2 (grid_search() and precision_recall_curve() functions for evaluation). graphics.
-- **Task 3:** Optical flow evaluation metrics.
-  - SOTA_backgroundSubstractor.py: Launcher of the task that have the state of the art implementations.
-- **Task 4:** De-synchornized results.
+  - week2.py: Launcher of the task 2.2 (grid_search() and precision_recall_curve() functions for evaluation).
+- **Task 3:** Compare with state-of-the-art
+  - SOTA_backgroundSubstractor.py: Launcher of the task 3 that have the state of the art implementations.
+- **Task 4:** Color sequences
   - gaussian_modelling.py: class that implements the gaussian model background substraction (use 'grayscale_modelling=False')
   - week2.py: Launcher of the task 4 (single_execution() function).

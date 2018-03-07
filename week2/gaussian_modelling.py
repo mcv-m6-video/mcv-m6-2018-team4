@@ -61,10 +61,18 @@ class GaussianModelling:
 
             y[i] = aux
 
+            mean_flat = self.mean.flatten()
+            std_flat = self.std.flatten()
+            bck_px= y[i].flatten()<0.5
             # Adapt the mean and std (Adaptive Gaussian Modelling)
-            self.mean = (1 - self.adaptive_ratio) * self.mean + self.adaptive_ratio * im
-            self.std = np.sqrt(
-                (1 - self.adaptive_ratio) * np.power(self.std, 2) + self.adaptive_ratio * np.power(im - self.mean, 2))
+            mean_flat[bck_px] = \
+                (1 - self.adaptive_ratio) * mean_flat[bck_px] + self.adaptive_ratio * im.flatten()[bck_px]
+            std_flat[bck_px] = np.sqrt(
+                (1 - self.adaptive_ratio) * np.power(std_flat[bck_px], 2) + self.adaptive_ratio * np.power(
+                    (im.flatten()[bck_px] - mean_flat[bck_px]), 2))
+
+            self.mean = np.resize(mean_flat,np.shape(self.mean))
+            self.std = np.resize(std_flat,np.shape(self.std))
 
             # plt.imshow(y[i],cmap='gray')
             # plt.show()

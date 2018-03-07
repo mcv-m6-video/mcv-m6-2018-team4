@@ -17,9 +17,9 @@ from mpl_toolkits.mplot3d import Axes3D
 def main():
 
     # Read dataset
-    # dataset = Dataset('highway',1050, 1350)
+    dataset = Dataset('highway',1051, 1350)
     # dataset = Dataset('fall', 1461, 1560)
-    dataset = Dataset('traffic', 951, 1050)
+    # dataset = Dataset('traffic', 951, 1050)
 
     imgs = dataset.readInput()
     imgs_GT = dataset.readGT()
@@ -30,7 +30,7 @@ def main():
     test_GT = imgs_GT[len(imgs)/2:]
 
     # TASK 1.1
-    # single_execution(train, test, test_GT)
+    single_execution(train, test, test_GT, 1.9, 0.2)
 
     # TASK 1.2
     # f1score_alpha(train, test, test_GT)
@@ -39,13 +39,13 @@ def main():
     # precision_recall_curve(train, test, test_GT)
 
     # TASK 2
-    grid_search(train, test, test_GT)
+    # grid_search(train, test, test_GT)
 
-def single_execution(train, test, test_GT):
+def single_execution(train, test, test_GT, alpha, ro):
 
     sys.stdout.write('Computing background substraction... ')
     # Background substraction
-    g = GaussianModelling()
+    g = GaussianModelling(alpha=alpha,adaptive_ratio=ro)
     g.fit(train)
     results = g.predict(test)
 
@@ -61,7 +61,7 @@ def single_execution(train, test, test_GT):
 
 def f1score_alpha(train, test, test_GT):
     # Task 1.2 - F1-score vs Alpha
-    alpha_range = np.around(np.arange(0,5,0.1),decimals=2)
+    alpha_range = np.around(np.arange(0,7,0.1),decimals=2)
 
     metrics_array = []
 
@@ -120,9 +120,8 @@ def precision_recall_curve(train, test, test_GT):
     plt.show()
 
 def grid_search(train, test, test_GT):
-    # Task 1.3 - F1-score vs Alpha
-    alpha_range = np.around(np.arange(1.5, 2, 0.1),decimals=2)
-    ro_range = np.around(np.arange(0, 0.15, 0.03),decimals=2)
+    alpha_range = np.around(np.arange(3, 6, 0.01),decimals=2)
+    ro_range = np.around(np.arange(0, 0.5, 0.01),decimals=2)
 
     f1_matrix = np.zeros([len(alpha_range),len(ro_range)])
 
@@ -146,12 +145,8 @@ def grid_search(train, test, test_GT):
             f1_matrix[i,j] = metrics[2]
 
     # Plot grid search
-
-
-
     X, Y = np.meshgrid(ro_range,alpha_range)
     Z = f1_matrix
-
 
     f1_max = np.max(f1_matrix)
     f1_max_idx = np.argmax(f1_matrix)
@@ -169,8 +164,6 @@ def grid_search(train, test, test_GT):
     ax.set_zlabel(axis[2])
     # plt.savefig('grid_search.png',dpi=300)
     plt.show()
-
-
 
 if __name__ == "__main__":
     main()

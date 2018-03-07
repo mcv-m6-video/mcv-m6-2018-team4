@@ -26,31 +26,34 @@ def readImages(Path, extension):
 
 def confusionMatrix(GT, Prediction):
     test_GT_v = np.array(GT)[:, :, :, 0].flatten()
+    valid_pixels = np.nonzero(np.any([(test_GT_v!= 85),(test_GT_v!= 170)], axis=0))
     y_true = (test_GT_v == 255)
 
     y_predicted = np.array(Prediction).flatten()
 
-    matrix = confusion_matrix(y_true, y_predicted)
+    matrix = confusion_matrix(y_true[valid_pixels], y_predicted[valid_pixels])
 
     return matrix
 
 def getMetrics(GT, Prediction):
     test_GT_v = np.array(GT)[:, :, :, 0].flatten()
+    valid_pixels = np.nonzero(np.any([(test_GT_v!= 85),(test_GT_v!= 170)], axis=0))
     y_true = (test_GT_v == 255)
 
     y_predicted = np.array(Prediction).flatten()
 
-    metrics = precision_recall_fscore_support(y_true, y_predicted, average="binary",pos_label=1)
+    metrics = precision_recall_fscore_support(y_true[valid_pixels], y_predicted[valid_pixels], average="binary",pos_label=1)
 
     return metrics
 
 def getPR_AUC(GT, Score):
     test_GT_v = np.array(GT)[:, :, :, 0].flatten()
+    valid_pixels = np.nonzero(np.any([(test_GT_v!= 85),(test_GT_v!= 170)], axis=0))
     y_true = (test_GT_v == 255)
 
     y_score = np.array(Score).flatten()
 
-    precision, recall, _ = precision_recall_curve(y_true, y_score)
+    precision, recall, _ = precision_recall_curve(y_true[valid_pixels], y_score[valid_pixels])
     auc_val = auc(recall, precision)
 
     return precision, recall, auc_val

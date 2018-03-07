@@ -30,7 +30,7 @@ def main():
     test_GT = imgs_GT[len(imgs)/2:]
 
     # TASK 1.1
-    single_execution(train, test, test_GT)
+    # single_execution(train, test, test_GT)
 
     # TASK 1.2
     # f1score_alpha(train, test, test_GT)
@@ -39,7 +39,7 @@ def main():
     # precision_recall_curve(train, test, test_GT)
 
     # TASK 2
-    # grid_search(train, test, test_GT)
+    grid_search(train, test, test_GT)
 
 def single_execution(train, test, test_GT):
 
@@ -61,12 +61,12 @@ def single_execution(train, test, test_GT):
 
 def f1score_alpha(train, test, test_GT):
     # Task 1.2 - F1-score vs Alpha
-    alpha_range = np.arange(0,3,0.1)
+    alpha_range = np.around(np.arange(0,5,0.1),decimals=2)
 
     metrics_array = []
 
     for alpha in alpha_range:
-        sys.stdout.write("(alpha=" + str(alpha)+") ")
+        sys.stdout.write("(alpha=" + str(np.around(alpha,decimals=2))+") ")
 
         # Background substraction
         g = GaussianModelling(alpha=alpha)
@@ -82,11 +82,17 @@ def f1score_alpha(train, test, test_GT):
         metrics_array.append(metrics);
 
     # TASK 2.2 - Plot F1-score vs Alpha
-    x = alpha_range
+    x = [alpha_range, alpha_range, alpha_range]
     metrics_array = np.array(metrics_array)
-    y = metrics_array[:, 2]
+    y = [metrics_array[:, 0], metrics_array[:, 1],metrics_array[:, 2]]
+
+    f1_max = np.max(metrics_array[:, 2])
+    f1_max_idx = np.argmax(metrics_array[:, 2])
+    best_alpha = alpha_range[f1_max_idx]
+    print "F1: " + str(np.around(f1_max,decimals=4)) + " (alpha="+str(best_alpha)+")"
+
     axis = ["Alpha", "F1-score"]
-    labels = ["traffic"]
+    labels = ["Precision", "Recall", "F1"]
     ev.plotGraphics(x, y, axis, labels)
 
 def precision_recall_curve(train, test, test_GT):
@@ -115,8 +121,8 @@ def precision_recall_curve(train, test, test_GT):
 
 def grid_search(train, test, test_GT):
     # Task 1.3 - F1-score vs Alpha
-    alpha_range = np.arange(1, 2.5, 0.1)
-    ro_range = np.arange(0, 0.5, 0.03)
+    alpha_range = np.around(np.arange(1.5, 2, 0.1),decimals=2)
+    ro_range = np.around(np.arange(0, 0.15, 0.03),decimals=2)
 
     f1_matrix = np.zeros([len(alpha_range),len(ro_range)])
 
@@ -140,20 +146,28 @@ def grid_search(train, test, test_GT):
             f1_matrix[i,j] = metrics[2]
 
     # Plot grid search
-    axis = ["Ro","Alpha", "F1-score"]
+
+
 
     X, Y = np.meshgrid(ro_range,alpha_range)
     Z = f1_matrix
 
+
+    f1_max = np.max(f1_matrix)
+    f1_max_idx = np.argmax(f1_matrix)
+    best_alpha = Y.flatten()[f1_max_idx]
+    best_ro = X.flatten()[f1_max_idx]
+
+    print "F1: " + str(np.around(f1_max, decimals=4)) + " (alpha=" + str(best_alpha) + ", ro=" + str(best_ro)+")"
+
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, Z, cmap='plasma')
-
+    axis = ["Ro","Alpha", "F1-score"]
     ax.set_xlabel(axis[0])
     ax.set_ylabel(axis[1])
     ax.set_zlabel(axis[2])
-
-    plt.savefig('grid_search.png',dpi=300)
+    # plt.savefig('grid_search.png',dpi=300)
     plt.show()
 
 

@@ -29,20 +29,35 @@ def main():
     test = imgs[len(imgs)/2:]
     test_GT = imgs_GT[len(imgs)/2:]
 
-    # # Background substraction
-    # g = GaussianModelling()
-    # g.fit(train)
-    # results = g.predict(test)
-    #
-    # # Evaluation sklearn
-    # t = time.time()
-    # metrics = ev.getMetrics(test_GT,results)
-    # elapsed = time.time() - t
-    # sys.stdout.write(str(elapsed) + ' sec \n')
+    # TASK 1.1
+    single_execution(train, test, test_GT)
 
-    grid_search(train, test, test_GT)
-
+    # TASK 1.2
     # f1score_alpha(train, test, test_GT)
+
+    # TASK 1.3
+    # precision_recall_curve(train, test, test_GT)
+
+    # TASK 2
+    # grid_search(train, test, test_GT)
+
+def single_execution(train, test, test_GT):
+
+    sys.stdout.write('Computing background substraction... ')
+    # Background substraction
+    g = GaussianModelling()
+    g.fit(train)
+    results = g.predict(test)
+
+    # Evaluation sklearn
+    t = time.time()
+    metrics = ev.getMetrics(test_GT,results)
+    elapsed = time.time() - t
+    sys.stdout.write(str(elapsed) + ' sec \n')
+
+    print "Recall: " + str(metrics[0] * 100)
+    print "Precision: " + str(metrics[1] * 100)
+    print "F1: " + str(metrics[2] * 100)
 
 def f1score_alpha(train, test, test_GT):
     # Task 1.2 - F1-score vs Alpha
@@ -73,6 +88,30 @@ def f1score_alpha(train, test, test_GT):
     axis = ["Alpha", "F1-score"]
     labels = ["traffic"]
     ev.plotGraphics(x, y, axis, labels)
+
+def precision_recall_curve(train, test, test_GT):
+
+    sys.stdout.write('Computing Precision-Recall curve... ')
+    # Background substraction
+    g = GaussianModelling()
+    g.fit(train)
+    scores = g.predict_probabilities(test)
+
+    t = time.time()
+    precision, recall, auc_val = ev.getPR_AUC(test_GT, scores)
+    elapsed = time.time() - t
+    sys.stdout.write(str(elapsed) + ' sec \n')
+
+    plt.step(recall, precision, color='g', alpha=0.2, where='post')
+    plt.fill_between(recall, precision, step='post', alpha=0.2, color='g')
+
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.ylim([0.0, 1.0])
+    plt.xlim([0.0, 1.0])
+    # plt.title("Precision-Recall curve (AUC=" + str(auc_val) + ")" )
+    plt.title("Precision-Recall curve - Fall" )
+    plt.show()
 
 def grid_search(train, test, test_GT):
     # Task 1.3 - F1-score vs Alpha

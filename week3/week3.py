@@ -10,6 +10,7 @@ import time
 
 from dataset import Dataset
 from gaussian_modelling import GaussianModelling
+from sklearn.metrics import auc
 
 import sys
 import matplotlib.pyplot as plt
@@ -61,8 +62,10 @@ def main():
     # task1_pipeline(train, test, test_GT, alpha, ro, 4, True)
 
     # TASK 2 - Area Filtering
-    task2_pipeline(train, test, test_GT, alpha, ro, 4, 100, True)
+    # task2_pipeline(train, test, test_GT, alpha, ro, 4, 100, True)
     # f1_p(train, test, test_GT, alpha, ro, 4)
+    auc_vs_p(train, test, test_GT, ro, 4)
+    # precision_recall_curve(train, test, test_GT, ro, 4, 100)
 
     # TASK 3 - Morphology
 
@@ -181,6 +184,99 @@ def results_evaluation(results, test_GT, prints):
 
     return metrics
 
+def auc_vs_p(train, test, test_GT, ro, conn):
+    # auc vs #Pixels
+    p_range = np.around(np.arange(0,1000    ,10))
+
+    auc_array = []
+
+    for p in p_range:
+        sys.stdout.write("(p=" + str(p)+") ")
+        auc = precision_recall_curve(train, test, test_GT, ro, conn, p, False)
+        auc_array.append(auc);
+
+    # TASK 2.2 - Plot F1-score vs Alpha
+    x = p_range
+    y = np.array(auc_array)
+
+    auc_max = np.max(y)
+    auc_max_idx = np.argmax(y)
+    best_p = p_range[auc_max_idx]
+
+    print "AUC: " + str(np.around(auc_max,decimals=4)) + " (p="+str(best_p)+")"
+
+    axis = ["#Pixels", "AUC"]
+    labels = []
+    ev.plotGraphics(x, y, axis, labels)
+
+def precision_recall_curve(train, test, test_GT, ro, conn, p, prints):
+    tt = time.time()
+    sys.stdout.write('Computing Precision-Recall curve... ')
+
+    alpha_range = np.around(np.arange(0, 14.2, 1), decimals=2)
+
+    metrics_array = []
+
+    for alpha in alpha_range:
+        if prints:
+            t = time.time()
+            sys.stdout.write("(alpha=" + str(np.around(alpha, decimals=2)) + ") ")
+        results = background_substraction(train, test, alpha, ro, False)
+        results = hole_filling(results, conn, False)
+        results = area_filtering(results, conn, p, False)
+        metrics = results_evaluation(results, test_GT, False)
+
+        metrics_array.append(metrics)
+
+        if prints:
+            elapsed = time.time() - t
+            sys.stdout.write(str(elapsed) + ' sec \n')
+
+    elapsed = time.time() - tt
+    sys.stdout.write(str(elapsed) + ' sec \n')
+
+    precision = np.array(metrics_array)[:,0]
+    recall = np.array(metrics_array)[:,1]
+    auc_val = auc(recall, precision)
+
+    if prints:
+        plt.plot(recall, precision, color='g')
+        print "AUC: "+ str(auc_val)
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.0])
+        plt.xlim([0.0, 1.0])
+        plt.title("Precision-Recall curve (AUC=" + str(auc_val) + ")" )
+        # plt.title("Precision-Recall curve - Fall" )
+        plt.show()
+
+    return auc_val
+
+
+def task1_hole_filling_nofor(train, test, test_GT, alpha, ro, conn):
+
+    if conn == 4:
+        el = generate_binary_structure(2,1)
+    elif conn == 8:
+        el = generate_binary_structure(2,2)
+    else:
+        print "Connectivity not valid"
+        return
+
+    results = background_substraction(train, test, alpha, ro)
+
+    el3d = np.repeat(el[:,:,np.newaxis],len(results),axis=2)
+
+    t = time.time()
+    sys.stdout.write('Computing hole filling... ')
+
+    results = binary_fill_holes(results)
+
+    elapsed = time.time() - t
+    sys.stdout.write(str(elapsed) + ' sec \n')
+
+    results_evaluation(results, test_GT)
+
 def f1_p(train, test, test_GT, alpha, ro, conn):
     prints = False
     # F1-score vs #Pixels
@@ -215,55 +311,6 @@ def f1_p(train, test, test_GT, alpha, ro, conn):
     axis = ["#Pixels", "F1-score"]
     labels = []
     ev.plotGraphics(x, y, axis, labels)
-
-def auc(results, test_GT):
-    sys.stdout.write('Computing Precision-Recall curve... ')
-    # Background substraction
-    g = GaussianModelling(adaptive_ratio=0.15, grayscale_modelling=False)
-    g.fit(train)
-    scores = g.predict_probabilities(test)
-
-    t = time.time()
-    precision, recall, auc_val = ev.getPR_AUC(test_GT, scores)
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n')
-
-    plt.step(recall, precision, color='g', alpha=0.2, where='post')
-    plt.fill_between(recall, precision, step='post', alpha=0.2, color='g')
-    print "AUC: " + str(auc_val)
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.ylim([0.0, 1.0])
-    plt.xlim([0.0, 1.0])
-    # plt.title("Precision-Recall curve (AUC=" + str(auc_val) + ")" )
-    plt.title("Precision-Recall curve - Fall")
-    plt.show()
-
-
-
-def task1_hole_filling_nofor(train, test, test_GT, alpha, ro, conn):
-
-    if conn == 4:
-        el = generate_binary_structure(2,1)
-    elif conn == 8:
-        el = generate_binary_structure(2,2)
-    else:
-        print "Connectivity not valid"
-        return
-
-    results = background_substraction(train, test, alpha, ro)
-
-    el3d = np.repeat(el[:,:,np.newaxis],len(results),axis=2)
-
-    t = time.time()
-    sys.stdout.write('Computing hole filling... ')
-
-    results = binary_fill_holes(results)
-
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n')
-
-    results_evaluation(results, test_GT)
 
 if __name__ == "__main__":
     main()

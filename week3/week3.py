@@ -58,10 +58,11 @@ def main():
     test_GT = imgs_GT[len(imgs)/2:]
 
     # TASK 1 - Hole Filling
-    # task1_pipeline(train, test, test_GT, alpha, ro, 4)
+    # task1_pipeline(train, test, test_GT, alpha, ro, 4, True)
 
     # TASK 2 - Area Filtering
-    task2_pipeline(train, test, test_GT, alpha, ro, 4, 20)
+    task2_pipeline(train, test, test_GT, alpha, ro, 4, 100, True)
+    # f1_p(train, test, test_GT, alpha, ro, 4)
 
     # TASK 3 - Morphology
 
@@ -69,7 +70,7 @@ def main():
 
     # TASK 5 - Show improvements (PR-curve/AUC)
 
-def task1_pipeline(train, test, test_GT, alpha, ro, conn):
+def task1_pipeline(train, test, test_GT, alpha, ro, conn, prints):
 
     results = background_substraction(train, test, alpha, ro)
 
@@ -79,33 +80,31 @@ def task1_pipeline(train, test, test_GT, alpha, ro, conn):
 
     return results
 
-def task2_pipeline(train, test, test_GT, alpha, ro, conn, p):
+def task2_pipeline(train, test, test_GT, alpha, ro, conn, p, prints):
 
-    results = background_substraction(train, test, alpha, ro)
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results,conn, p, prints)
+    metrics = results_evaluation(results, test_GT, prints)
 
-    results = hole_filling(results,conn)
+    return results, metrics
 
-    results = area_filtering(results,conn, p)
+def background_substraction(train, test, alpha, ro, prints):
 
-    results_evaluation(results, test_GT)
-
-    return results
-
-def background_substraction(train, test, alpha, ro):
-
-    # Background substraction
-    t = time.time()
-    sys.stdout.write('Computing background substraction... ')
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing background substraction... ')
     g = GaussianModelling(alpha=alpha,adaptive_ratio=ro)
     g.fit(train)
     results = g.predict(test)
 
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n')
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
 
     return results
 
-def hole_filling(images, conn):
+def hole_filling(images, conn, prints):
 
     if conn == 4:
         el = generate_binary_structure(2,1)
@@ -115,18 +114,21 @@ def hole_filling(images, conn):
         print "Connectivity not valid"
         return
 
-    t = time.time()
-    sys.stdout.write('Computing hole filling... ')
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing hole filling... ')
 
     for image in range(len(images)):
         images[image, :, :] = binary_fill_holes(images[image, :, :], el)
 
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n')
+
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
 
     return images
 
-def area_filtering(images, conn, pixels):
+def area_filtering(images, conn, pixels, prints):
 
     if conn == 4:
         el = generate_binary_structure(2,1)
@@ -136,42 +138,108 @@ def area_filtering(images, conn, pixels):
         print "Connectivity not valid"
         return
 
-    t = time.time()
-    sys.stdout.write('Computing area filtering... ')
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing area filtering... ')
 
     for image in range(len(images)):
         image_labeled, nlbl = label(images[image, :, :], el)
 
         lbls = np.arange(1, nlbl + 1)
 
-        info = labeled_comprehension(images, image_labeled, lbls, np.sum, float, 0)
-        valid_lbls = lbls[info > pixels]
+        if nlbl>0:
+            info = labeled_comprehension(images, image_labeled, lbls, np.sum, float, 0)
+            valid_lbls = lbls[info > pixels]
 
-        result = np.zeros(images[image, :, :].shape)
+            result = np.zeros(images[image, :, :].shape)
 
-        for lbl in valid_lbls:
-            result = np.logical_or(result, (image_labeled == lbl))
+            for lbl in valid_lbls:
+                result = np.logical_or(result, (image_labeled == lbl))
 
-        images[image, :, :] = result
+                images[image, :, :] = result
 
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n')
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
 
     return images
 
-def results_evaluation(results, test_GT):
+def results_evaluation(results, test_GT, prints):
     # Evaluation sklearn
-    sys.stdout.write('Evaluating results... ')
-    t = time.time()
+    if prints:
+        sys.stdout.write('Evaluating results... ')
+        t = time.time()
     metrics = ev.getMetrics(test_GT, results)
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n\n')
 
-    print "Recall: " + str(metrics[0] * 100)
-    print "Precision: " + str(metrics[1] * 100)
-    print "F1: " + str(metrics[2] * 100)
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n\n')
+
+        print "Recall: " + str(metrics[0] * 100)
+        print "Precision: " + str(metrics[1] * 100)
+        print "F1: " + str(metrics[2] * 100)
 
     return metrics
+
+def f1_p(train, test, test_GT, alpha, ro, conn):
+    prints = False
+    # F1-score vs #Pixels
+    p_range = np.around(np.arange(0,100,10))
+
+    metrics_array = []
+
+    results = background_substraction(train, test, alpha, ro, prints)
+
+    results = hole_filling(results, conn, prints)
+
+    for p in p_range:
+        sys.stdout.write("(p=" + str(p)+")\n")
+
+        results_filtered = area_filtering(results, conn, p, prints)
+
+        metrics = results_evaluation(results_filtered, test_GT, prints)
+
+        metrics_array.append(metrics);
+
+    # TASK 2.2 - Plot F1-score vs Alpha
+    x = p_range
+    metrics_array = np.array(metrics_array)
+    y = metrics_array[:, 2]
+
+    f1_max = np.max(metrics_array[:, 2])
+    f1_max_idx = np.argmax(metrics_array[:, 2])
+    best_p = p_range[f1_max_idx]
+
+    print "F1: " + str(np.around(f1_max,decimals=4)) + " (p="+str(best_p)+")"
+
+    axis = ["#Pixels", "F1-score"]
+    labels = []
+    ev.plotGraphics(x, y, axis, labels)
+
+def auc(results, test_GT):
+    sys.stdout.write('Computing Precision-Recall curve... ')
+    # Background substraction
+    g = GaussianModelling(adaptive_ratio=0.15, grayscale_modelling=False)
+    g.fit(train)
+    scores = g.predict_probabilities(test)
+
+    t = time.time()
+    precision, recall, auc_val = ev.getPR_AUC(test_GT, scores)
+    elapsed = time.time() - t
+    sys.stdout.write(str(elapsed) + ' sec \n')
+
+    plt.step(recall, precision, color='g', alpha=0.2, where='post')
+    plt.fill_between(recall, precision, step='post', alpha=0.2, color='g')
+    print "AUC: " + str(auc_val)
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.ylim([0.0, 1.0])
+    plt.xlim([0.0, 1.0])
+    # plt.title("Precision-Recall curve (AUC=" + str(auc_val) + ")" )
+    plt.title("Precision-Recall curve - Fall")
+    plt.show()
+
+
 
 def task1_hole_filling_nofor(train, test, test_GT, alpha, ro, conn):
 

@@ -68,7 +68,8 @@ def plotGraphics(x, y, axis, labels):
 
     plt.xlabel(axis[0])
     plt.ylabel(axis[1])
-    plt.legend()
+    if len(labels)>0:
+        plt.legend()
     plt.show()
 
 

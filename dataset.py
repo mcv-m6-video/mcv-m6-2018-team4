@@ -3,6 +3,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
+import sys
+import time
 
 
 class Dataset:
@@ -10,11 +12,16 @@ class Dataset:
         if dataset_name == 'highway':
             path = "../../Datasets/highway/"
 
-        if dataset_name == 'traffic':
+        elif dataset_name == 'traffic':
             path = "../../Datasets/traffic/"
 
-        if dataset_name == 'fall':
+        elif dataset_name == 'fall':
             path = "../../Datasets/fall/"
+
+        else:
+            print "Invalid dataset name"
+            return
+
 
         self.gt_path = path + "groundtruth/"
         self.input_path = path + "input/"
@@ -22,13 +29,25 @@ class Dataset:
         self.frames_range = (frame_init-1,frame_end)
 
     def readInput(self):
-        print "Reading Input"
+        t = time.time()
+        sys.stdout.write('Reading Input... ')
+
         images = self.readImages(self.input_path,'jpg',self.frames_range)
+
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
+
         return images
 
     def readGT(self):
-        print "Reading Groundtruth"
+        t = time.time()
+        sys.stdout.write('Reading Groundtruth... ')
+
         images = self.readImages(self.gt_path,'png',self.frames_range)
+
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
+
         return images
 
     def readImages(self, path, extension, frame_ranges):

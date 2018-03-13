@@ -16,7 +16,7 @@ import sys
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.ndimage import binary_fill_holes, generate_binary_structure, label, labeled_comprehension
-
+from skimage.morphology import remove_small_objects
 
 def main():
     # Week 2 Best configurations
@@ -24,9 +24,9 @@ def main():
     #   - Fall      (a=3.2,ro=0.05) F1=0.6896 - conn4 (73.94992293059627)
     #   - Traffic   (a=3.5,ro=0.15) F1=0.6376 - conn8 (63.954441547032424) conn4(63.91668494564192)
 
-    # dataset_name = 'highway'
+    dataset_name = 'highway'
     # dataset_name = 'fall'
-    dataset_name = 'traffic'
+    # dataset_name = 'traffic'
 
     if dataset_name == 'highway':
         frames_range = (1051, 1350)
@@ -66,6 +66,12 @@ def main():
     # f1_p(train, test, test_GT, alpha, ro, 4)
     auc_vs_p(train, test, test_GT, ro, 4)
     # precision_recall_curve(train, test, test_GT, ro, 4, 100)
+    # precision_recall_curve_prob(train, test, test_GT, ro, 4, 100)
+
+    # (auc=0.5868)
+    # 21.798926115
+    # sec
+    # AUC: 0.5868318974467303
 
     # TASK 3 - Morphology
 
@@ -87,7 +93,7 @@ def task2_pipeline(train, test, test_GT, alpha, ro, conn, p, prints):
 
     results = background_substraction(train, test, alpha, ro, prints)
     results = hole_filling(results,conn, prints)
-    results = area_filtering(results,conn, p, prints)
+    results = area_filtering2(results,conn, p, prints)
     metrics = results_evaluation(results, test_GT, prints)
 
     return results, metrics
@@ -145,27 +151,16 @@ def area_filtering(images, conn, pixels, prints):
         t = time.time()
         sys.stdout.write('Computing area filtering... ')
 
+    results = np.zeros(images.shape)
+
     for image in range(len(images)):
-        image_labeled, nlbl = label(images[image, :, :], el)
-
-        lbls = np.arange(1, nlbl + 1)
-
-        if nlbl>0:
-            info = labeled_comprehension(images, image_labeled, lbls, np.sum, float, 0)
-            valid_lbls = lbls[info > pixels]
-
-            result = np.zeros(images[image, :, :].shape)
-
-            for lbl in valid_lbls:
-                result = np.logical_or(result, (image_labeled == lbl))
-
-                images[image, :, :] = result
+        results[image, :, :] = remove_small_objects(images[image, :, :].astype(np.bool), pixels)
 
     if prints:
         elapsed = time.time() - t
         sys.stdout.write(str(elapsed) + ' sec \n')
 
-    return images
+    return results
 
 def results_evaluation(results, test_GT, prints):
     # Evaluation sklearn
@@ -186,7 +181,7 @@ def results_evaluation(results, test_GT, prints):
 
 def auc_vs_p(train, test, test_GT, ro, conn):
     # auc vs #Pixels
-    p_range = np.around(np.arange(0,1000    ,10))
+    p_range = np.around(np.arange(0, 1000, 10))
 
     auc_array = []
 
@@ -209,11 +204,13 @@ def auc_vs_p(train, test, test_GT, ro, conn):
     labels = []
     ev.plotGraphics(x, y, axis, labels)
 
-def precision_recall_curve(train, test, test_GT, ro, conn, p, prints):
+    print y
+
+def precision_recall_curve(train, test, test_GT, ro, conn, p, prints=True):
     tt = time.time()
     sys.stdout.write('Computing Precision-Recall curve... ')
 
-    alpha_range = np.around(np.arange(0, 14.2, 1), decimals=2)
+    alpha_range = np.around(np.arange(0, 12.2, 1), decimals=2)
 
     metrics_array = []
 
@@ -232,12 +229,16 @@ def precision_recall_curve(train, test, test_GT, ro, conn, p, prints):
             elapsed = time.time() - t
             sys.stdout.write(str(elapsed) + ' sec \n')
 
+
+    precision = np.array(metrics_array)[:, 0]
+    recall = np.array(metrics_array)[:, 1]
+    auc_val = auc(recall, precision)
+
+    sys.stdout.write("(auc=" + str(np.around(auc_val, decimals=4)) + ") ")
+
     elapsed = time.time() - tt
     sys.stdout.write(str(elapsed) + ' sec \n')
 
-    precision = np.array(metrics_array)[:,0]
-    recall = np.array(metrics_array)[:,1]
-    auc_val = auc(recall, precision)
 
     if prints:
         plt.plot(recall, precision, color='g')
@@ -252,7 +253,58 @@ def precision_recall_curve(train, test, test_GT, ro, conn, p, prints):
 
     return auc_val
 
+def precision_recall_curve_prob(train, test, test_GT, ro, conn, p, prints=True):
+    tt = time.time()
+    sys.stdout.write('Computing Precision-Recall curve... ')
 
+    alpha_range = np.around(np.arange(0, 12.2, 1), decimals=2)
+
+
+    metrics_array = []
+    g = GaussianModelling(alpha=3.5,adaptive_ratio=ro)
+    g.fit(train)
+    results_prob = g.predict_probabilities(test)
+
+    for alpha in alpha_range:
+        if prints:
+            t = time.time()
+            sys.stdout.write("(alpha=" + str(np.around(alpha, decimals=2)) + ") ")
+        results = results_prob.copy() > alpha
+        results = hole_filling(results, conn, False)
+        results = area_filtering(results, conn, p, False)
+        metrics = results_evaluation(results, test_GT, False)
+
+        metrics_array.append(metrics)
+
+        if prints:
+            elapsed = time.time() - t
+            sys.stdout.write(str(elapsed) + ' sec \n')
+
+
+    precision = np.array(metrics_array)[:, 0]
+    recall = np.array(metrics_array)[:, 1]
+    auc_val = auc(recall, precision)
+
+    sys.stdout.write("(auc=" + str(np.around(auc_val, decimals=4)) + ") ")
+
+    elapsed = time.time() - tt
+    sys.stdout.write(str(elapsed) + ' sec \n')
+
+
+    if prints:
+        plt.plot(recall, precision, color='g')
+        print "AUC: "+ str(auc_val)
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.0])
+        plt.xlim([0.0, 1.0])
+        plt.title("Precision-Recall curve (AUC=" + str(auc_val) + ")" )
+        # plt.title("Precision-Recall curve - Fall" )
+        plt.show()
+
+    return auc_val
+
+# Other old functions
 def task1_hole_filling_nofor(train, test, test_GT, alpha, ro, conn):
 
     if conn == 4:
@@ -311,6 +363,42 @@ def f1_p(train, test, test_GT, alpha, ro, conn):
     axis = ["#Pixels", "F1-score"]
     labels = []
     ev.plotGraphics(x, y, axis, labels)
+
+def area_filtering2(images, conn, pixels, prints):
+
+    if conn == 4:
+        el = generate_binary_structure(2,1)
+    elif conn == 8:
+        el = generate_binary_structure(2,2)
+    else:
+        print "Connectivity not valid"
+        return
+
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing area filtering... ')
+
+    for image in range(len(images)):
+        image_labeled, nlbl = label(images[image, :, :], el)
+
+        lbls = np.arange(1, nlbl + 1)
+
+        if nlbl>0:
+            info = labeled_comprehension(images, image_labeled, lbls, np.sum, float, 0)
+            valid_lbls = lbls[info > pixels]
+
+            result = np.zeros(images[image, :, :].shape)
+
+            for lbl in valid_lbls:
+                result = np.logical_or(result, (image_labeled == lbl))
+
+                images[image, :, :] = result
+
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
+
+    return images
 
 if __name__ == "__main__":
     main()

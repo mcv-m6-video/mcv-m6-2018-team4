@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    #dataset_name = 'highway'
+    # dataset_name = 'highway'
     dataset_name = 'fall'
     # dataset_name = 'traffic'
 
@@ -57,8 +57,8 @@ def main():
     im_plot_list = []
     fig = plt.figure()
     for i in range(len(results)):
-        im=paint_in_image(results[i],color='white')
-        im=paint_in_image(results_hf[i]-results[i],im,color=(255,255,0))
+        im = paint_in_image(results[i], color='white')
+        im = paint_in_image(results_hf[i] - results[i], im, color=(255, 255, 0))
 
         im_plot = plt.imshow(im, animated=True)
         plt.axis("off")
@@ -69,7 +69,7 @@ def main():
     plt.show()
 
 
-def paint_in_image(mask,image=None, color='white'):
+def paint_in_image(mask, image=None, color='white'):
     if color == 'white':
         channel_values = (255, 255, 255)
     elif color == 'red':
@@ -78,28 +78,25 @@ def paint_in_image(mask,image=None, color='white'):
         channel_values = (0, 255, 0)
     elif color == 'blue':
         channel_values = (0, 0, 255)
-    elif len(color) == 3 and isinstance(color[0],int):
+    elif len(color) == 3 and isinstance(color[0], int):
         channel_values = color
     else:
         print('{} not a valid color'.format(color))
 
     if image is None:
-        image=np.zeros([mask.shape[0],mask.shape[1],3],dtype=np.uint8)
+        image = np.zeros([mask.shape[0], mask.shape[1], 3], dtype=np.uint8)
     else:
-        image=np.copy(image)
+        image = np.copy(image)
 
-    red_channel = image[:,:,0]
-    green_channel = image[:,:,1]
-    blue_channel = image[:,:,2]
+    red_channel = image[:, :, 0]
+    green_channel = image[:, :, 1]
+    blue_channel = image[:, :, 2]
 
-    red_channel[mask==1]=channel_values[0]
-    green_channel[mask==1]=channel_values[1]
-    blue_channel[mask==1]=channel_values[2]
+    red_channel[mask == 1] = channel_values[0]
+    green_channel[mask == 1] = channel_values[1]
+    blue_channel[mask == 1] = channel_values[2]
 
     return image
-
-
-
 
 
 if __name__ == "__main__":

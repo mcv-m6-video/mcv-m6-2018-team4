@@ -26,9 +26,15 @@ def main():
     #   - Fall      (a=3.2,ro=0.05) F1=0.6896 - conn4 (73.94992293059627)
     #   - Traffic   (a=3.5,ro=0.15) F1=0.6376 - conn8 (63.954441547032424) conn4(63.91668494564192)
 
-    # dataset_name = 'highway'
+    # Week 2 Best configurations
+    #   - Highway   (a=2.4,ro=0.15) AUC=0.358 - conn4 (0.5102)  conn8(0.5081)
+    #   - Fall      (a=3.2,ro=0.05) AUC=0.689 - conn4 (0.6968)  conn8(0.6893)
+    #   - Traffic   (a=3.5,ro=0.15) AUC=0.497 - conn4 (0.5515)  conn8(0.5509)
+
+
+    dataset_name = 'highway'
     # dataset_name = 'fall'
-    dataset_name = 'traffic'
+    # dataset_name = 'traffic'
 
     if dataset_name == 'highway':
         frames_range = (1051, 1350)
@@ -45,12 +51,12 @@ def main():
         alpha = 1.4
         ro = 0.05
         p = 1800
-        conn = 4
+        conn = 8
 
     elif dataset_name == 'traffic':
-        frames_range = ( 951, 1050)
-        alpha = 3.5
-        # alpha = 2.8
+        frames_range = (951, 1050)
+        # alpha = 3.5
+        alpha = 2.8
         ro = 0.15
         p = 330
         conn = 4
@@ -72,16 +78,17 @@ def main():
 
     # TASK 1 - Hole Filling
     # results, metrics = task1_pipeline(train, test, test_GT, alpha, ro, 8, True)
+    # precision_recall_curve(train, test, test_GT, ro, conn, p)
 
     # TASK 2 - Area Filtering
     # results, metrics = task2_pipeline(train, test, test_GT, alpha, ro, conn, p)
 
     # f1_p(train, test, test_GT, alpha, ro, 4)
     # auc_vs_p(train, test, test_GT, ro, 4)
-    # precision_recall_curve(train, test, test_GT, ro, conn, p)
+    precision_recall_curve(train, test, test_GT, ro, conn, p)
     # f1score_alpha(train, test, test_GT, conn, ro, p, prints=False)
 
-    auc_all()
+    # auc_all()
 
     # TASK 3 - Morphology
 
@@ -338,11 +345,13 @@ def f1score_alpha(train, test, test_GT, conn, ro, p, prints=False):
     ev.plotGraphics(x, y, axis, labels)
 
 def auc_all():
-    p_range = np.concatenate([np.array([0]),np.around(np.arange(0, 1000, 10))])
-    p_range2 = np.concatenate([np.array([0]),np.around(np.arange(0, 2000, 50))])
+    # p_range = np.concatenate([np.array([0]),np.around(np.arange(0, 1000, 10))])
+    p_range = np.around(np.arange(0, 1000, 10))
+    # p_range2 = np.concatenate([np.array([0]),np.around(np.arange(0, 2000, 50))])
+    p_range2 = np.around(np.arange(0, 2000, 50))
     x = [p_range, p_range,p_range2]
 
-    y_traffic = [0, 0.54865382, 0.5592443,  0.56580872, 0.571033,   0.57604746, 0.58004003,
+    y_traffic = [0.54865382, 0.5592443,  0.56580872, 0.571033,   0.57604746, 0.58004003,
  0.5837208,  0.58664876, 0.58901124, 0.59100597, 0.59249389, 0.59403019,
  0.59510371, 0.59685786, 0.59798599, 0.5998437,  0.60081657, 0.60195222,
  0.60377896, 0.60619143, 0.6073376,  0.60800021, 0.60910401, 0.60971082,
@@ -360,7 +369,7 @@ def auc_all():
  0.60714994, 0.60661957, 0.60623696, 0.60641611, 0.60608787, 0.60609832,
  0.60649841, 0.60685467, 0.60777793, 0.60863877]
 
-    y_highway = [0, 0.47646952, 0.51264552, 0.51712399, 0.52016654, 0.52226093, 0.52292387,
+    y_highway = [0.47646952, 0.51264552, 0.51712399, 0.52016654, 0.52226093, 0.52292387,
  0.52324357, 0.52385192, 0.524463,   0.52590177, 0.52727928, 0.52689404,
  0.52689589, 0.52699987, 0.52692316, 0.52722481, 0.52747004, 0.52697665,
  0.52713471, 0.52716288, 0.52698196, 0.52691934, 0.52779482, 0.52722408,
@@ -378,7 +387,7 @@ def auc_all():
  0.5133746,  0.51237951, 0.51229149, 0.51209891, 0.51304629, 0.51176097,
  0.51267674, 0.51321841, 0.51307787, 0.5136463 ]
 
-    y_fall = [0, 0.60677031, 0.70924287, 0.73032806, 0.7406121,  0.7490444,  0.75348709,
+    y_fall = [0.60677031, 0.70924287, 0.73032806, 0.7406121,  0.7490444,  0.75348709,
  0.76354178, 0.77049525, 0.7728623,  0.77931308, 0.78337424, 0.78399852,
  0.78696076, 0.79017504, 0.79253606, 0.79500976, 0.79990754, 0.80621057,
  0.81470682, 0.81729479, 0.81780651, 0.81886046, 0.82048388, 0.82309066,
@@ -387,11 +396,11 @@ def auc_all():
  0.85109461, 0.851044, 0.85095705, 0.85093486]
 
     # y = [y_traffic, y_highway, y_fall]
-    x = [[0],p_range]
-    y = [[0],y_traffic]
+    x = p_range
+    y = y_traffic
     axis = ["#Pixels", "AUC"]
     # labels = ["Traffic", "Highway", "Fall"]
-    labels = ["x","y"]
+    labels = []
     ev.plotGraphics(x, y, axis, labels)
 
 # Other old functions

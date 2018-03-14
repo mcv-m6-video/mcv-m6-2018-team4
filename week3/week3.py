@@ -15,9 +15,10 @@ from sklearn.metrics import auc
 import sys
 import matplotlib.pyplot as plt
 from matplotlib import animation
+import morphology as morph
 
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.ndimage import binary_fill_holes, generate_binary_structure, label, labeled_comprehension
+from scipy.ndimage import binary_fill_holes, binary_closing, binary_opening, generate_binary_structure, label, labeled_comprehension
 from skimage.morphology import remove_small_objects
 
 def main():
@@ -32,9 +33,9 @@ def main():
     #   - Traffic   (a=3.5,ro=0.15) AUC=0.497 - conn4 (0.5515)  conn8(0.5509)
 
 
-    dataset_name = 'highway'
+    # dataset_name = 'highway'
     # dataset_name = 'fall'
-    # dataset_name = 'traffic'
+    dataset_name = 'traffic'
 
     if dataset_name == 'highway':
         frames_range = (1051, 1350)
@@ -85,16 +86,19 @@ def main():
 
     # f1_p(train, test, test_GT, alpha, ro, 4)
     # auc_vs_p(train, test, test_GT, ro, 4)
-    precision_recall_curve(train, test, test_GT, ro, conn, p)
+    # precision_recall_curve(train, test, test_GT, ro, conn, p)
     # f1score_alpha(train, test, test_GT, conn, ro, p, prints=False)
 
     # auc_all()
 
     # TASK 3 - Morphology
+    results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p)
+    results, metrics = task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p)
+    results, metrics = task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p)
 
     # TASK 4 - Shadow removal
 
-    # make_gif(results)
+    make_gif(results)
 
     # TASK 5 - Show improvements (PR-curve/AUC)
 
@@ -110,6 +114,59 @@ def task2_pipeline(train, test, test_GT, alpha, ro, conn, p, prints=True):
     results = background_substraction(train, test, alpha, ro, prints)
     results = hole_filling(results,conn, prints)
     results = area_filtering(results, p, prints)
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
+
+def task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, prints=True):
+
+
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results, p, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
+    results = morph.Closing(results, kernel, True)
+
+    results = hole_filling(results,conn, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (17, 17))
+    results = morph.Opening(results, kernel, True)
+
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
+
+def task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p, prints=True):
+
+
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results, p, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    results = morph.Closing(results, kernel, True)
+
+    results = hole_filling(results,conn, prints)
+
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
+
+def task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True):
+
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results, p, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    results = morph.Closing(results, kernel, True)
+
+    results = hole_filling(results,conn, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 1))
+    results = morph.Opening(results, kernel, True)
+
     metrics = results_evaluation(results, test_GT, prints)
 
     return results, metrics

@@ -33,15 +33,17 @@ def main():
     #   - Traffic   (a=3.5,ro=0.15) AUC=0.497 - conn4 (0.5515)  conn8(0.5509)
 
 
-    # dataset_name = 'highway'
+    dataset_name = 'highway'
     # dataset_name = 'fall'
-    dataset_name = 'traffic'
+    # dataset_name = 'traffic'
 
     if dataset_name == 'highway':
         frames_range = (1051, 1350)
         # alpha = 2.4
-        alpha = 1.8
-        ro = 0.15
+        # alpha = 1.8
+        alpha = 1.9
+        # ro = 0.15
+        ro = 0.25
         p = 220
         conn = 4
 
@@ -92,15 +94,17 @@ def main():
     # auc_all()
 
     # TASK 3 - Morphology
-    results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p)
-    results, metrics = task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p)
-    results, metrics = task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p)
-
-    # TASK 4 - Shadow removal
-
-    make_gif(results)
+    # results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p)
+    # results, metrics = task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p)
+    # results, metrics = task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p)
 
     # TASK 5 - Show improvements (PR-curve/AUC)
+    # precision_recall_curve(train, test, test_GT, ro, conn, p)
+    # grid_search(train, test, test_GT, conn, p)
+
+    # make_gif(results)
+
+# TASK 1 FUNCTIONS
 
 def task1_pipeline(train, test, test_GT, alpha, ro, conn, prints=True):
 
@@ -108,83 +112,6 @@ def task1_pipeline(train, test, test_GT, alpha, ro, conn, prints=True):
     results = hole_filling(results,conn)
     metrics = results_evaluation(results, test_GT)
     return results, metrics
-
-def task2_pipeline(train, test, test_GT, alpha, ro, conn, p, prints=True):
-
-    results = background_substraction(train, test, alpha, ro, prints)
-    results = hole_filling(results,conn, prints)
-    results = area_filtering(results, p, prints)
-    metrics = results_evaluation(results, test_GT, prints)
-
-    return results, metrics
-
-def task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, prints=True):
-
-
-    results = background_substraction(train, test, alpha, ro, prints)
-    results = hole_filling(results,conn, prints)
-    results = area_filtering(results, p, prints)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
-    results = morph.Closing(results, kernel, True)
-
-    results = hole_filling(results,conn, prints)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (17, 17))
-    results = morph.Opening(results, kernel, True)
-
-    metrics = results_evaluation(results, test_GT, prints)
-
-    return results, metrics
-
-def task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p, prints=True):
-
-
-    results = background_substraction(train, test, alpha, ro, prints)
-    results = hole_filling(results,conn, prints)
-    results = area_filtering(results, p, prints)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    results = morph.Closing(results, kernel, True)
-
-    results = hole_filling(results,conn, prints)
-
-    metrics = results_evaluation(results, test_GT, prints)
-
-    return results, metrics
-
-def task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True):
-
-    results = background_substraction(train, test, alpha, ro, prints)
-    results = hole_filling(results,conn, prints)
-    results = area_filtering(results, p, prints)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-    results = morph.Closing(results, kernel, True)
-
-    results = hole_filling(results,conn, prints)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 1))
-    results = morph.Opening(results, kernel, True)
-
-    metrics = results_evaluation(results, test_GT, prints)
-
-    return results, metrics
-
-def background_substraction(train, test, alpha, ro, prints=True):
-
-    if prints:
-        t = time.time()
-        sys.stdout.write('Computing background substraction... ')
-    g = GaussianModelling(alpha=alpha,adaptive_ratio=ro)
-    g.fit(train)
-    results = g.predict(test)
-
-    if prints:
-        elapsed = time.time() - t
-        sys.stdout.write(str(elapsed) + ' sec \n')
-
-    return results
 
 def hole_filling(images, conn, prints=True):
 
@@ -210,19 +137,16 @@ def hole_filling(images, conn, prints=True):
 
     return images
 
-def make_gif(results):
-    ims = []
-    fig=plt.figure()
-    for i in range(len(results)):
-        im = plt.imshow(results[i],cmap='gray',animated=True)
-        plt.axis("off")
-        ims.append([im])
+# TASK 2 FUNCTIONS
 
-    anim = animation.ArtistAnimation(fig, ims,interval=len(results), blit=True)
-    anim.save('animation.gif', writer='imagemagick', fps=10)
-    plt.show()
+def task2_pipeline(train, test, test_GT, alpha, ro, conn, p, prints=True):
 
-    return
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results, p, prints)
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
 
 def area_filtering(images, pixels, prints):
 
@@ -240,23 +164,6 @@ def area_filtering(images, pixels, prints):
         sys.stdout.write(str(elapsed) + ' sec \n')
 
     return results
-
-def results_evaluation(results, test_GT, prints=True):
-    # Evaluation sklearn
-    if prints:
-        sys.stdout.write('Evaluating results... ')
-        t = time.time()
-    metrics = ev.getMetrics(test_GT, results)
-
-    if prints:
-        elapsed = time.time() - t
-        sys.stdout.write(str(elapsed) + ' sec \n\n')
-
-        print "Recall: " + str(metrics[0] * 100)
-        print "Precision: " + str(metrics[1] * 100)
-        print "F1: " + str(metrics[2] * 100)
-
-    return metrics
 
 def auc_vs_p(train, test, test_GT, ro, conn):
     # auc vs #Pixels
@@ -284,122 +191,6 @@ def auc_vs_p(train, test, test_GT, ro, conn):
     ev.plotGraphics(x, y, axis, labels)
 
     print y
-
-def precision_recall_curve(train, test, test_GT, ro, conn, p, prints=True):
-    tt = time.time()
-    sys.stdout.write('Computing Precision-Recall curve... ')
-
-    alpha_range = np.around(np.arange(0, 16.2, 1), decimals=2)
-
-    metrics_array = []
-
-    for alpha in alpha_range:
-        if prints:
-            t = time.time()
-            sys.stdout.write("(alpha=" + str(np.around(alpha, decimals=2)) + ") ")
-        results = background_substraction(train, test, alpha, ro, False)
-        results = hole_filling(results, conn, False)
-        results = area_filtering(results, p, False)
-        metrics = results_evaluation(results, test_GT, False)
-
-        metrics_array.append(metrics)
-
-        if prints:
-            elapsed = time.time() - t
-            sys.stdout.write(str(elapsed) + ' sec \n')
-
-
-    precision = np.array(metrics_array)[:, 0]
-    recall = np.array(metrics_array)[:, 1]
-    auc_val = auc(recall, precision)
-
-    sys.stdout.write("(auc=" + str(np.around(auc_val, decimals=4)) + ") ")
-
-    elapsed = time.time() - tt
-    sys.stdout.write(str(elapsed) + ' sec \n')
-
-
-    if prints:
-        plt.plot(recall, precision, color='g')
-        print "AUC: "+ str(auc_val)
-        plt.xlabel('Recall')
-        plt.ylabel('Precision')
-        plt.ylim([0.0, 1.0])
-        plt.xlim([0.0, 1.0])
-        plt.title("Precision-Recall curve (AUC=" + str(auc_val) + ")" )
-        # plt.title("Precision-Recall curve - Fall" )
-        plt.show()
-
-    return auc_val
-
-    # Task 1.2 - F1-score vs Alpha
-    alpha_range = np.around(np.arange(1.5,2.5,0.1),decimals=2)
-
-    metrics_array = []
-
-    for alpha in alpha_range:
-        sys.stdout.write("(alpha=" + str(np.around(alpha,decimals=2))+") ")
-
-        # Background substraction
-        g = GaussianModelling(alpha=alpha)
-        g.fit(train)
-        results = g.predict(test)
-
-        # Evaluation sklearn
-        t = time.time()
-        metrics = ev.getMetrics(test_GT, results)
-        elapsed = time.time() - t
-        sys.stdout.write(str(elapsed) + ' sec \n')
-
-        metrics_array.append(metrics);
-
-    # TASK 2.2 - Plot F1-score vs Alpha
-    x = [alpha_range, alpha_range, alpha_range]
-    metrics_array = np.array(metrics_array)
-    y = [metrics_array[:, 0], metrics_array[:, 1],metrics_array[:, 2]]
-
-    f1_max = np.max(metrics_array[:, 2])
-    f1_max_idx = np.argmax(metrics_array[:, 2])
-    best_alpha = alpha_range[f1_max_idx]
-    print "F1: " + str(np.around(f1_max,decimals=4)) + " (alpha="+str(best_alpha)+")"
-
-    axis = ["Alpha", "F1-score"]
-    labels = ["Precision", "Recall", "F1"]
-    ev.plotGraphics(x, y, axis, labels)
-
-def f1score_alpha(train, test, test_GT, conn, ro, p, prints=False):
-    # Task 1.2 - F1-score vs Alpha
-    alpha_range = np.around(np.arange(1,5,0.2),decimals=2)
-
-    metrics_array = []
-
-    for alpha in alpha_range:
-        sys.stdout.write("(alpha=" + str(np.around(alpha,decimals=2))+") ")
-        t= time.time()
-
-        results = background_substraction(train, test, alpha, ro, prints)
-        results = hole_filling(results, conn, prints)
-        results = area_filtering(results, p, prints)
-        metrics = results_evaluation(results, test_GT, prints)
-
-        metrics_array.append(metrics);
-
-        elapsed = time.time() - t
-        sys.stdout.write(str(elapsed) + ' sec \n')
-
-    # TASK 2.2 - Plot F1-score vs Alpha
-    x = [alpha_range, alpha_range, alpha_range]
-    metrics_array = np.array(metrics_array)
-    y = [metrics_array[:, 0], metrics_array[:, 1],metrics_array[:, 2]]
-
-    f1_max = np.max(metrics_array[:, 2])
-    f1_max_idx = np.argmax(metrics_array[:, 2])
-    best_alpha = alpha_range[f1_max_idx]
-    print "F1: " + str(np.around(f1_max,decimals=4)) + " (alpha="+str(best_alpha)+")"
-
-    axis = ["Alpha", "F1-score"]
-    labels = ["Precision", "Recall", "F1"]
-    ev.plotGraphics(x, y, axis, labels)
 
 def auc_all():
     # p_range = np.concatenate([np.array([0]),np.around(np.arange(0, 1000, 10))])
@@ -460,7 +251,244 @@ def auc_all():
     labels = []
     ev.plotGraphics(x, y, axis, labels)
 
-# Other old functions
+# TASK 3 FUNCTIONS
+
+def task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, prints=True):
+
+
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results, p, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
+    results = morph.Closing(results, kernel, prints)
+
+    results = hole_filling(results,conn, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (17, 17))
+    results = morph.Opening(results, kernel, prints)
+
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
+
+def task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p, prints=True):
+
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results, p, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    results = morph.Closing(results, kernel, prints)
+
+    results = hole_filling(results,conn, prints)
+
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
+
+def task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True):
+
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+    results = area_filtering(results, p, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    results = morph.Closing(results, kernel, prints)
+
+    results = hole_filling(results,conn, prints)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 1))
+    results = morph.Opening(results, kernel, prints)
+
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
+
+# Functions from last week
+
+def background_substraction(train, test, alpha, ro, prints=True):
+
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing background substraction... ')
+    g = GaussianModelling(alpha=alpha,adaptive_ratio=ro)
+    g.fit(train)
+    results = g.predict(test)
+
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
+
+    return results
+
+def make_gif(results):
+    ims = []
+    fig=plt.figure()
+    for i in range(len(results)):
+        im = plt.imshow(results[i],cmap='gray',animated=True)
+        plt.axis("off")
+        ims.append([im])
+
+    anim = animation.ArtistAnimation(fig, ims,interval=len(results), blit=True)
+    anim.save('animation.gif', writer='imagemagick', fps=10)
+    plt.show()
+
+    return
+
+def results_evaluation(results, test_GT, prints=True):
+    # Evaluation sklearn
+    if prints:
+        sys.stdout.write('Evaluating results... ')
+        t = time.time()
+    metrics = ev.getMetrics(test_GT, results)
+
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n\n')
+
+        print "Recall: " + str(metrics[0] * 100)
+        print "Precision: " + str(metrics[1] * 100)
+        print "F1: " + str(metrics[2] * 100)
+
+    return metrics
+
+def f1score_alpha(train, test, test_GT, conn, ro, p, prints=False):
+    # Task 1.2 - F1-score vs Alpha
+    alpha_range = np.around(np.arange(1,5,0.2),decimals=2)
+
+    metrics_array = []
+
+    for alpha in alpha_range:
+        sys.stdout.write("(alpha=" + str(np.around(alpha,decimals=2))+") ")
+        t= time.time()
+
+        results = background_substraction(train, test, alpha, ro, prints)
+        results = hole_filling(results, conn, prints)
+        results = area_filtering(results, p, prints)
+        metrics = results_evaluation(results, test_GT, prints)
+
+        metrics_array.append(metrics);
+
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
+
+    # TASK 2.2 - Plot F1-score vs Alpha
+    x = [alpha_range, alpha_range, alpha_range]
+    metrics_array = np.array(metrics_array)
+    y = [metrics_array[:, 0], metrics_array[:, 1],metrics_array[:, 2]]
+
+    f1_max = np.max(metrics_array[:, 2])
+    f1_max_idx = np.argmax(metrics_array[:, 2])
+    best_alpha = alpha_range[f1_max_idx]
+    print "F1: " + str(np.around(f1_max,decimals=4)) + " (alpha="+str(best_alpha)+")"
+
+    axis = ["Alpha", "F1-score"]
+    labels = ["Precision", "Recall", "F1"]
+    ev.plotGraphics(x, y, axis, labels)
+
+def precision_recall_curve(train, test, test_GT, ro, conn, p, prints=True):
+    tt = time.time()
+    sys.stdout.write('Computing Precision-Recall curve... ')
+
+    alpha_range = np.around(np.arange(0, 16.2, 0.25), decimals=2)
+
+    metrics_array = []
+    metrics_old_array = []
+
+    for alpha in alpha_range:
+        if prints:
+            t = time.time()
+            sys.stdout.write("(alpha=" + str(np.around(alpha, decimals=2)) + ") ")
+
+        results = background_substraction(train, test, alpha, ro, False)
+        metrics_old = results_evaluation(results, test_GT, False)
+
+        # results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, False)
+        # results, metrics = task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p, False)
+        results, metrics = task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, False)
+
+        metrics_array.append(metrics)
+        metrics_old_array.append(metrics_old)
+
+        if prints:
+            elapsed = time.time() - t
+            sys.stdout.write(str(elapsed) + ' sec \n')
+
+    precision = np.array(metrics_array)[:, 0]
+    recall = np.array(metrics_array)[:, 1]
+    auc_val = auc(recall, precision)
+
+    precision_old = np.array(metrics_old_array)[:, 0]
+    recall_old = np.array(metrics_old_array)[:, 1]
+    auc_val_old = auc(recall_old, precision_old)
+
+    sys.stdout.write("(auc=" + str(np.around(auc_val, decimals=4)) + ") ")
+    sys.stdout.write("(auc_old=" + str(np.around(auc_val_old, decimals=4)) + ") ")
+
+    elapsed = time.time() - tt
+    sys.stdout.write(str(elapsed) + ' sec \n')
+
+
+    if prints:
+        plt.plot(recall, precision, color='b', label='week3')
+        plt.plot(recall_old, precision_old, color='r', label='week2')
+        print "AUC: "+ str(auc_val)
+        print "AUC_OLD: "+ str(auc_val_old)
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.0])
+        plt.xlim([0.0, 1.0])
+        plt.title("Precision-Recall curves")
+        plt.legend()
+        plt.show()
+
+    return auc_val
+
+def grid_search(train, test, test_GT, conn, p):
+    alpha_range = np.around(np.arange(1.5, 2.2, 0.1),decimals=2)
+    ro_range = np.around(np.arange(0.15, 0.3, 0.01),decimals=2)
+
+    f1_matrix = np.zeros([len(alpha_range),len(ro_range)])
+
+    for i in range(len(alpha_range)):
+        alpha = alpha_range[i]
+        for j in range(len(ro_range)):
+            ro = ro_range[j]
+            t = time.time()
+            sys.stdout.write("(alpha=" + str(alpha)+", ro=" + str(ro)+") ")
+
+            # results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, False)
+            # results, metrics = task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p, False)
+            results, metrics = task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, False)
+
+            f1_matrix[i,j] = metrics[2]
+            elapsed = time.time() - t
+            sys.stdout.write("(f1=" + str(metrics[2])+") ")
+            sys.stdout.write(str(elapsed) + ' sec \n')
+
+    # Plot grid search
+    X, Y = np.meshgrid(ro_range,alpha_range)
+    Z = f1_matrix
+
+    f1_max = np.max(f1_matrix)
+    f1_max_idx = np.argmax(f1_matrix)
+    best_alpha = Y.flatten()[f1_max_idx]
+    best_ro = X.flatten()[f1_max_idx]
+
+    print "F1: " + str(np.around(f1_max, decimals=5)) + " (alpha=" + str(best_alpha) + ", ro=" + str(best_ro)+")"
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.plot_surface(X, Y, Z, cmap='plasma')
+    axis = ["Ro","Alpha", "F1-score"]
+    ax.set_xlabel(axis[0])
+    ax.set_ylabel(axis[1])
+    ax.set_zlabel(axis[2])
+    # plt.savefig('grid_search.png',dpi=300)
+    plt.show()
+
+# Alternative versions of some functions
 def task1_hole_filling_nofor(train, test, test_GT, alpha, ro, conn):
 
     if conn == 4:

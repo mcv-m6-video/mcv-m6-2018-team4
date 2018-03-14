@@ -3,7 +3,7 @@ import sys
 sys.path.append('..')
 sys.path.append('../week2/')
 
-from week3 import hole_filling, background_substraction
+from week3 import hole_filling, background_substraction, area_filtering
 
 import cv2
 import evaluation as ev
@@ -18,23 +18,33 @@ import matplotlib.pyplot as plt
 
 def main():
     # dataset_name = 'highway'
-    dataset_name = 'fall'
-    # dataset_name = 'traffic'
+    # dataset_name = 'fall'
+    dataset_name = 'traffic'
 
     if dataset_name == 'highway':
         frames_range = (1051, 1350)
-        alpha = 2.4
+        # alpha = 2.4
+        alpha = 1.8
         ro = 0.15
+        p = 220
+        conn = 4
+
 
     elif dataset_name == 'fall':
         frames_range = (1461, 1560)
-        alpha = 3.2
+        # alpha = 3.2
+        alpha = 1.4
         ro = 0.05
+        p = 1800
+        conn = 8
 
     elif dataset_name == 'traffic':
         frames_range = (951, 1050)
-        alpha = 3.5
+        # alpha = 3.5
+        alpha = 2.8
         ro = 0.15
+        p = 330
+        conn = 4
 
     else:
         print "Invalid dataset name"
@@ -53,12 +63,14 @@ def main():
     results = background_substraction(train, test, alpha, ro, prints=True)
     copy_of_results = np.copy(results)
     results_hf = hole_filling(copy_of_results, 4, prints=True)
+    copy_of_results_hf = np.copy(results_hf)
+    results_af = area_filtering(copy_of_results_hf, pixels=850, prints=True)
 
     im_plot_list = []
     fig = plt.figure()
     for i in range(len(results)):
-        im = paint_in_image(results[i], color='white')
-        im = paint_in_image(results_hf[i] - results[i], im, color=(255, 255, 0))
+        im = paint_in_image(results_af[i], color='white')
+        #im = paint_in_image(results_hf[i] - results[i], im, color=(190, 255, 190))
 
         im_plot = plt.imshow(im, animated=True)
         plt.axis("off")
@@ -66,7 +78,7 @@ def main():
 
     anim = animation.ArtistAnimation(fig, im_plot_list, interval=len(results), blit=True)
     anim.save('animation.gif', writer='imagemagick', fps=10)
-    plt.show()
+    #plt.show()
 
 
 def paint_in_image(mask, image=None, color='white'):

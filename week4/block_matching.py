@@ -8,12 +8,15 @@ import matplotlib.pyplot as plt
 def ssd(array1, array2):
     return np.sum(np.power(array1.astype(np.float32) - array2.astype(np.float32), 2))
 
+
 def reorder_towards_center(vector, center):
     npvector = np.array(vector)
-    distances = np.abs(npvector-center)
+    distances = np.abs(npvector - center)
     return npvector[np.argsort(distances)]
 
-def block_matching(im1, im2, block_size=(3, 3), step=(1,1), area=(2 * 3 + 3, 2 * 3 + 3), error_func=ssd, error_thresh=1):
+
+def block_matching(im1, im2, block_size=(3, 3), step=(1, 1), area=(2 * 3 + 3, 2 * 3 + 3), error_func=ssd,
+                   error_thresh=1):
     debug = False
     if im1.shape != im2.shape:
         print('ERROR: Image shapes are not the same!')
@@ -39,10 +42,10 @@ def block_matching(im1, im2, block_size=(3, 3), step=(1,1), area=(2 * 3 + 3, 2 *
 
     # IM1's double loop
     result_i = 0
-    for i in np.arange(padding[0], rows + padding[0],step=step[0]):
+    for i in np.arange(padding[0], rows + padding[0], step=step[0]):
         start = time.time()
         result_j = 0
-        for j in np.arange(padding[1], cols + padding[1],step=step[1]):
+        for j in np.arange(padding[1], cols + padding[1], step=step[1]):
             block1 = im1[i - halfs_block[0]:i + halfs_block[0] + odd_block[0],
                      j - halfs_block[1]:j + halfs_block[1] + odd_block[1], :]
             if debug:
@@ -77,11 +80,13 @@ def block_matching(im1, im2, block_size=(3, 3), step=(1,1), area=(2 * 3 + 3, 2 *
             max_error = min_error
 
             # IM2's double loop
-            k_vector = range(area_range[0][0], area_range[0][1]) #reorder_towards_center(range(area_range[0][0], area_range[0][1]),i)
-            l_vector = range(area_range[1][0], area_range[1][1]) #reorder_towards_center(range(area_range[1][0], area_range[1][1]),j)
+            k_vector = range(area_range[0][0],
+                             area_range[0][1])  # reorder_towards_center(range(area_range[0][0], area_range[0][1]),i)
+            l_vector = range(area_range[1][0],
+                             area_range[1][1])  # reorder_towards_center(range(area_range[1][0], area_range[1][1]),j)
             for k in k_vector:
                 for l in l_vector:
-                    if k==i and j==l:
+                    if k == i and j == l:
                         continue
 
                     block2 = im2[k - halfs_block[0]:k + halfs_block[0] + odd_block[0],
@@ -112,13 +117,10 @@ def block_matching(im1, im2, block_size=(3, 3), step=(1,1), area=(2 * 3 + 3, 2 *
                 plt.close(f1)
             if np.abs(min_error - no_flow_error) < error_thresh:
                 move = (0, 0)
-            result[result_i:result_i+step[0], result_j:result_j+step[1], 0] = move[0]
-            result[result_i:result_i+step[0], result_j:result_j+step[1], 1] = move[1]
+            result[result_i:result_i + step[0], result_j:result_j + step[1], 0] = move[0]
+            result[result_i:result_i + step[0], result_j:result_j + step[1], 1] = move[1]
 
             result_j += step[1]
-        print('row: {} time: {}'.format(result_i,time.time()-start))
+        print('Processed image row: {}/{} spent time: {}sec'.format(result_i, rows, time.time() - start))
         result_i += step[0]
     return result
-# step step=(1, 1),
-# same size ouput: np repeat
-# if max-min error very small then no flow

@@ -57,10 +57,8 @@ def flow_error(F_gt, F_est):
     F_gt_val = F_gt[:, :, 2]
     E[F_gt_val == 0] = 0
 
-    E_list = np.append(E, E[F_gt_val != 0])
-
-    MSE = np.mean(E_list)
-    PEPN = np.sum(E_list > 3) * 100. / len(E_list)
+    MSE = np.mean(E[F_gt_val != 0])
+    PEPN = np.sum(E[F_gt_val != 0] > 3) * 100. / len(E[F_gt_val != 0])
 
     print('MSE: ' + str(MSE))
     print('PEPN: ' + str(PEPN))

@@ -1,13 +1,13 @@
 import sys
 
-from week4.lucas_kanade import optical_flow_lk
+from lucas_kanade import optical_flow_lk
 
-from week4.horn_schunk import optical_flow_hs
+from horn_schunk import optical_flow_hs
 
-from week4.video_stabilization import video_stabilization
+from video_stabilization import video_stabilization
 
 sys.path.append('..')
-from week4.flow_utils_w4 import flow_read, flow_error, flow_visualization
+from flow_utils_w4 import flow_read, flow_error, flow_visualization
 import cv2
 import os
 from block_matching import block_matching
@@ -33,13 +33,13 @@ def main():
     sequence.append(frame)
 
     # TASK 1.1 - Block Matching
-    flow = block_matching(sequence[0], sequence[1], block_size=(3 * 8, 3 * 8), step=(8, 8), area=(8, 8))
-
-    flow_error(F_gt, flow)
-    rgb_flow = flow_visualization(flow[:, :, 0], flow[:, :, 1], 0)
-
-    plt.imshow(rgb_flow)
-    plt.show()
+    # flow = block_matching(sequence[0], sequence[1], block_size=(3 * 8, 3 * 8), step=(8, 8), area=(8, 8))
+    #
+    # flow_error(F_gt, flow)
+    # rgb_flow = flow_visualization(flow[:, :, 0], flow[:, :, 1], 0)
+    #
+    # plt.imshow(rgb_flow)
+    # plt.show()
 
     # TASK 1.2 - Block Matching vs Other Techniques
     # sigma = 15;
@@ -66,12 +66,20 @@ def main():
     # traffic_test_GT = traffic_GT[len(traffic)/2:]
 
     # TASK 2.1 - Video stabilization with Block Matching
-    # video_stabilization(traffic)
-
+    seq_stab =  video_stabilization(traffic)
+    makeVideo(seq_stab, 'seq_stabilized.avi')
     # TASK 2.2 - Block Matching Stabilization vs Other Techniques
 
     # TASK 2.3 - Stabilize your own video
 
+def makeVideo(sequence,video_name):
+
+    H, W, C, N = sequence.shape
+    video = cv2.VideoWriter(video_name, -1, 20.0, (W, H))
+    for i in range(N):
+        frame = sequence[:,:,:,i]
+        # Video writte
+        video.write(frame)
 
 if __name__ == "__main__":
     main()

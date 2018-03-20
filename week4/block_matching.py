@@ -5,9 +5,11 @@ from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 
 
-def ssd(array1, array2):
+def sse(array1, array2):
     return np.sum(np.power(array1.astype(np.float32) - array2.astype(np.float32), 2))
 
+def mse(array1, array2):
+    return np.mean(np.power(array1.astype(np.float32) - array2.astype(np.float32), 2))
 
 def reorder_towards_center(vector, center):
     npvector = np.array(vector)
@@ -15,7 +17,7 @@ def reorder_towards_center(vector, center):
     return npvector[np.argsort(distances)]
 
 
-def block_matching(im1, im2, block_size=(3, 3), step=(1, 1), area=(2 * 3 + 3, 2 * 3 + 3), error_func=ssd,
+def block_matching(im1, im2, block_size=(3, 3), step=(1, 1), area=(2 * 3 + 3, 2 * 3 + 3), area_step=(1,1), error_func=mse,
                    error_thresh=1, verbose=False):
     debug = False
     if im1.shape != im2.shape:
@@ -80,10 +82,10 @@ def block_matching(im1, im2, block_size=(3, 3), step=(1, 1), area=(2 * 3 + 3, 2 
             max_error = min_error
 
             # IM2's double loop
-            k_vector = range(area_range[0][0],
-                             area_range[0][1])  # reorder_towards_center(range(area_range[0][0], area_range[0][1]),i)
-            l_vector = range(area_range[1][0],
-                             area_range[1][1])  # reorder_towards_center(range(area_range[1][0], area_range[1][1]),j)
+            k_vector = np.arange(area_range[0][0],
+                             area_range[0][1],step=area_step[0])  # reorder_towards_center(np.arange(area_range[0][0], area_range[0][1],step=area_step[0]),i)
+            l_vector = np.arange(area_range[1][0],
+                             area_range[1][1],step=area_step[1])  # reorder_towards_center(np.arange(area_range[1][0], area_range[1][1],step=area_step[1],j)
             for k in k_vector:
                 for l in l_vector:
                     if k == i and j == l:

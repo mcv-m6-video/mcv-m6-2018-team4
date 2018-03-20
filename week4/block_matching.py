@@ -19,11 +19,6 @@ def block_matching(im1, im2, block_size=(3, 3), area=(2 * 3 + 3, 2 * 3 + 3), err
         print('ERROR: Image shapes are not the same!')
         exit(-1)
 
-    if len(im1.shape) == 2:
-        im1 = np.copy(im1)[:, :, np.newaxis]
-        im2 = np.copy(im2)[:, :, np.newaxis]
-    rows, cols, channels = im1.shape
-
     odd_block = (block_size[0] % 2, block_size[1] % 2)
     halfs_block = (block_size[0] / 2, block_size[1] / 2)
     padding = (halfs_block[0], halfs_block[1])
@@ -33,6 +28,12 @@ def block_matching(im1, im2, block_size=(3, 3), area=(2 * 3 + 3, 2 * 3 + 3), err
 
     im1 = cv2.copyMakeBorder(im1, padding[0], padding[0], padding[1], padding[1], cv2.BORDER_REFLECT)
     im2 = cv2.copyMakeBorder(im2, padding[0], padding[0], padding[1], padding[1], cv2.BORDER_REFLECT)
+
+    if len(im1.shape) == 2:
+        im1 = np.copy(im1)[:, :, np.newaxis]
+        im2 = np.copy(im2)[:, :, np.newaxis]
+    rows, cols, channels = im1.shape
+
     result = np.empty([rows, cols, 2])  # step
 
     # IM1's double loop

@@ -104,7 +104,8 @@ def grid_search_block_matching(sequence, F_gt):
     np.save('pepn_results', pepn_results)
     np.save('block_size_vector', block_size_vector)
     np.save('area_mult_vector', area_mult_vector)
-    plot_grid_search(mse_results,block_size_vector,area_mult_vector,['Block size', 'Area multiplier', 'MSE'], save_to_file='MSE.png')
+    plot_grid_search(mse_results,area_mult_vector,block_size_vector,['Area multiplier','Block size', 'MSE'], save_to_file='MSE.png')
+    plot_grid_search(pepn_results,area_mult_vector,block_size_vector,['Area multiplier','Block size', 'PEPN'], save_to_file='PEPN.png')
 
 
 def plot_grid_search(values, x_range, y_range, legend, save_to_file=None):

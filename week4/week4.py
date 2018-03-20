@@ -16,7 +16,9 @@ from dataset import Dataset
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+import imageio
 
+from matplotlib import animation
 
 
 def main():
@@ -26,15 +28,15 @@ def main():
     nsequence = '000045'
     # nsequence = '000157'
 
-    F_gt = flow_read(os.path.join(path, 'flow_noc', nsequence + '_10.png'))
-
-    sequence = []
-    frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_10.png')))
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    sequence.append(frame)
-    frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_11.png')))
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    sequence.append(frame)
+    # F_gt = flow_read(os.path.join(path, 'flow_noc', nsequence + '_10.png'))
+    #
+    # sequence = []
+    # frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_10.png')))
+    # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # sequence.append(frame)
+    # frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_11.png')))
+    # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # sequence.append(frame)
 
     # TASK 1.1 - Block Matching
     # flow = block_matching(sequence[0], sequence[1], block_size=(16, 16), step=(8, 8), area=(24, 24), area_step=(1,1), error_thresh=1, verbose=True)
@@ -60,18 +62,17 @@ def main():
     # TASK 2 - VIDEO STABILIZATION
 
     # Read traffic dataset
-    # traffic_dataset = Dataset('traffic', 951, 1050)
+    traffic_dataset = Dataset('traffic', 951, 1050)
 
-    # traffic = traffic_dataset.readInput()
-    # traffic_GT = traffic_dataset.readGT()
-
-    # Split dataset
-    # traffic_train = traffic[:len(traffic)/2]
-    # traffic_test = traffic[len(traffic)/2:]
-    # traffic_test_GT = traffic_GT[len(traffic)/2:]
+    traffic = traffic_dataset.readInput()
+    traffic_GT = traffic_dataset.readGT()
 
     # TASK 2.1 - Video stabilization with Block Matching
-    # video_stabilization(traffic)
+    seq_stab = video_stabilization(traffic)
+    np.save('seq_stab.npy',seq_stab)
+
+    # seq_stab = np.load('seq_stab.npy')
+    make_gif(seq_stab)
 
     # TASK 2.2 - Block Matching Stabilization vs Other Techniques
 
@@ -123,6 +124,32 @@ def plot_grid_search(values, x_range, y_range, legend, save_to_file=None):
         plt.savefig(save_to_file, dpi=300)
     plt.show()
 
+def makeVideo(sequence, video_name):
+
+    H, W, C, N = sequence.shape
+    video = cv2.VideoWriter(video_name, -1, 20.0, (W, H))
+    for i in range(N):
+        frame = sequence[:, :, :, i]
+        # Video writte
+        video.write(frame)
+
+def make_gif(results):
+
+    H, W, C, N = results.shape
+
+    ims = []
+    fig = plt.figure()
+    for i in range(N):
+        im = plt.imshow(cv2.cvtColor(results[:,:,:,i].astype(np.uint8), cv2.COLOR_BGR2RGB),animated=True)
+        # im = plt.imshow(results[:, :, :, i], animated=True)
+        plt.axis("off")
+        ims.append([im])
+
+    anim = animation.ArtistAnimation(fig, ims, interval=len(results), blit=True)
+    anim.save('animation.gif', writer='imagemagick', fps=10)
+    plt.show()
+
+    return
 
 if __name__ == "__main__":
     main()

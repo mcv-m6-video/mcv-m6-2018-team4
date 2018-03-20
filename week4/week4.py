@@ -10,6 +10,7 @@ import time
 from lucas_kanade import *
 from horn_schunk import *
 from block_matching import block_matching
+from video_stabilization import video_stabilization
 
 from dataset import Dataset
 from sklearn.metrics import auc
@@ -23,19 +24,8 @@ from scipy import ndimage
 
 def main():
 
-    # Read datasets
-    # TRAFFIC
-    # traffic_dataset = Dataset('traffic',951, 1050)
-    #
-    # traffic = traffic_dataset.readInput()
-    # traffic_GT = traffic_dataset.readGT()
-    #
-    # # Split dataset
-    # traffic_train = traffic[:len(traffic)/2]
-    # traffic_test = traffic[len(traffic)/2:]
-    # traffic_test_GT = traffic_GT[len(traffic)/2:]
+    # TASK 1 - OPTICAL FLOW
 
-    # OPTICAL FLOW
     path = '../../Datasets/data_stereo_flow/training/'
     nsequence = '000045'
     # nsequence = '000157'
@@ -50,43 +40,48 @@ def main():
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     sequence.append(frame)
 
-
-# TASK 1 - OPTICAL FLOW
 # TASK 1.1 - Block Matching
-    # flow = block_matching(sequence[0], sequence[1], block_size=(16, 16), area=(2*16 +16, 2 *16+16))
+    flow = block_matching(sequence[0], sequence[1], block_size=(3*8, 3*8), step = (8,8), area=(8,8))
 
-    # rgb_flow = optical_flow_visualization(flow[:,:,0],flow[:,:,1])
-
-    # plt.imshow(rgb_flow)
-    # plt.show()
-
-# TASK 1.2 - Block Matching vs Other Techniques
-    sigma = 15;
-    u, v = optical_flow_lk(sequence[0],sequence[1],sigma)
-
-    # alpha = 0.5;
-    # u, v = optical_flow_hs(sequence[0],sequence[1],alpha)
-
-    rgb_flow = optical_flow_visualization(u,v)
-
-    # flow = cv2.calcOpticalFlowFarneback(sequence[0], sequence[1], None, 0.5, 3, 15, 3, 5, 1.2, 0)
-
-    # rgb_flow = optical_flow_visualization(flow[:,:,0],flow[:,:,1],0)
-    # rgb_flow = optical_flow_visualization(F_gt[:,:,0],F_gt[:,:,1],3)
+    flow_error(F_gt, flow)
+    rgb_flow = flow_visualization(flow[:, :, 0], flow[:, :, 1], 0)
 
     plt.imshow(rgb_flow)
     plt.show()
 
+# TASK 1.2 - Block Matching vs Other Techniques
+    # sigma = 15;
+    # u, v = optical_flow_lk(sequence[0],sequence[1],sigma)
+
+    # alpha = 0.5;
+    # u, v = optical_flow_hs(sequence[0],sequence[1],alpha)
+
+    # rgb_flow = optical_flow_visualization(u,v)
+
+    # flow = cv2.calcOpticalFlowFarneback(sequence[0], sequence[1], None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
 
 
 # TASK 2 - VIDEO STABILIZATION
+
+    # Read datasets
+    # TRAFFIC
+    traffic_dataset = Dataset('traffic',951, 1050)
+
+    traffic = traffic_dataset.readInput()
+    traffic_GT = traffic_dataset.readGT()
+
+    # Split dataset
+    # traffic_train = traffic[:len(traffic)/2]
+    # traffic_test = traffic[len(traffic)/2:]
+    # traffic_test_GT = traffic_GT[len(traffic)/2:]
+
     # TASK 2.1 - Video stabilization with Block Matching
+    # video_stabilization(traffic)
 
     # TASK 2.2 - Block Matching Stabilization vs Other Techniques
 
     # TASK 2.3 - Stabilize your own video
-
-# TASK 1 FUNCTIONS
 
 def opencv_lk2(prvs,next):
     hsv = np.zeros_like(prvs)
@@ -99,7 +94,7 @@ def opencv_lk2(prvs,next):
     cv2.imshow('frame2',bgr)
     cv2.waitKey(0)
 
-def optical_flow_visualization(u, v, dil_size=0):
+def flow_visualization(u, v, dil_size=0):
 
     H = u.shape[0]
     W = u.shape[1]
@@ -148,6 +143,29 @@ def flow_read(filename):
 
     # Matrix with vector (u,v) in the channel 0 and 1 and boolean valid in channel 2
     return np.transpose(np.array([F_u, F_v, F_valid]), axes=[1, 2, 0])
+
+def flow_error(F_gt, F_est):
+    # Remember: Flow vector = (u,v)
+
+    # Compute error
+    E_du = F_gt[:, :, 0] - F_est[:, :, 0]
+    E_dv = F_gt[:, :, 1] - F_est[:, :, 1]
+    E = np.sqrt(E_du ** 2 + E_dv ** 2)
+
+    # Set the error of the non valid (occluded) pixels to 0
+    F_gt_val = F_gt[:, :, 2]
+    E[F_gt_val == 0] = 0
+
+    E_list = np.append(E, E[F_gt_val != 0])
+
+    MSE = np.mean(E_list)
+    PEPN = np.sum(E_list > 3) * 100. / len(E_list)
+
+    print('MSE: ' + str(MSE))
+    print('PEPN: ' + str(PEPN))
+
+    return MSE, PEPN
+
 
 if __name__ == "__main__":
     main()

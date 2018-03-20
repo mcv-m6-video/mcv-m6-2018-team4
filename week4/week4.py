@@ -17,6 +17,7 @@ from sklearn.metrics import auc
 import sys
 import matplotlib.pyplot as plt
 from matplotlib import animation
+from scipy import ndimage
 
 
 
@@ -37,7 +38,7 @@ def main():
     # OPTICAL FLOW
     path = '../../Datasets/data_stereo_flow/training/'
     nsequence = '000045'
-    # sequence = '000157'
+    # nsequence = '000157'
 
     F_gt = flow_read(os.path.join(path, 'flow_noc', nsequence+'_10.png'))
 
@@ -51,30 +52,30 @@ def main():
 
 
 # TASK 1 - OPTICAL FLOW
-    # TASK 1.1 - Block Matching
-    flow = block_matching(sequence[0], sequence[1], block_size=(16, 16), area=(2*16 +16, 2 *16+16))
+# TASK 1.1 - Block Matching
+    # flow = block_matching(sequence[0], sequence[1], block_size=(16, 16), area=(2*16 +16, 2 *16+16))
 
-    rgb_flow = optical_flow_visualization(flow,flow)
+    # rgb_flow = optical_flow_visualization(flow[:,:,0],flow[:,:,1])
 
-    plt.imshow(rgb_flow)
-    plt.show()
-
-    # TASK 1.2 - Block Matching vs Other Techniques
-    # alpha = 0.5;
-    # u, v = optical_flow_hs(sequence[0],sequence[1],alpha)
-
-    # rgb_flow = optical_flow_visualization(F_gt[:,:,0],F_gt[:,:,1])
-
-    # sigma = 1;
-    # u, v = optical_flow_lk(sequence[0],sequence[1],sigma)
-    #
-    # alpha = 0.5;
-    # u, v = optical_flow_hs(sequence[0],sequence[1],alpha)
-    # rgb_flow = optical_flow_visualization(u,v)
-    #
     # plt.imshow(rgb_flow)
     # plt.show()
 
+# TASK 1.2 - Block Matching vs Other Techniques
+    sigma = 15;
+    u, v = optical_flow_lk(sequence[0],sequence[1],sigma)
+
+    # alpha = 0.5;
+    # u, v = optical_flow_hs(sequence[0],sequence[1],alpha)
+
+    rgb_flow = optical_flow_visualization(u,v)
+
+    # flow = cv2.calcOpticalFlowFarneback(sequence[0], sequence[1], None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
+    # rgb_flow = optical_flow_visualization(flow[:,:,0],flow[:,:,1],0)
+    # rgb_flow = optical_flow_visualization(F_gt[:,:,0],F_gt[:,:,1],3)
+
+    plt.imshow(rgb_flow)
+    plt.show()
 
 
 
@@ -86,11 +87,6 @@ def main():
     # TASK 2.3 - Stabilize your own video
 
 # TASK 1 FUNCTIONS
-def opencv_lk(prvs,next):
-
-    flow = cv2.calcOpticalFlowFarneback(prvs, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-
-    return flow
 
 def opencv_lk2(prvs,next):
     hsv = np.zeros_like(prvs)
@@ -103,7 +99,7 @@ def opencv_lk2(prvs,next):
     cv2.imshow('frame2',bgr)
     cv2.waitKey(0)
 
-def optical_flow_visualization(u, v):
+def optical_flow_visualization(u, v, dil_size=0):
 
     H = u.shape[0]
     W = u.shape[1]
@@ -124,13 +120,15 @@ def optical_flow_visualization(u, v):
     # hsv[:,:,2] = ((mag - np.min(mag))/np.max(mag))*255
     hsv[:,:,1] = 255
 
+    hsv[:, :, 0] = ndimage.grey_dilation(hsv[:, :, 0], size=(dil_size, dil_size))
+    hsv[:, :, 2] = ndimage.grey_dilation(hsv[:, :, 2], size=(dil_size, dil_size))
+
     # convert HSV to int32's
     hsv = np.asarray(hsv, dtype= np.uint8)
     rgb_flow = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
 
     # plt.imshow(rgb_flow)
     # plt.show()
-
     return rgb_flow
 
 def flow_read(filename):

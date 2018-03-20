@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from matplotlib.patches import Rectangle
-from skimage.util import pad
 import matplotlib.pyplot as plt
 
 
@@ -19,6 +18,8 @@ def block_matching(im1, im2, block_size=(3, 3), area=(2 * 3 + 3, 2 * 3 + 3), err
         print('ERROR: Image shapes are not the same!')
         exit(-1)
 
+    rows, cols = im1.shape[:2]
+
     odd_block = (block_size[0] % 2, block_size[1] % 2)
     halfs_block = (block_size[0] / 2, block_size[1] / 2)
     padding = (halfs_block[0], halfs_block[1])
@@ -32,13 +33,13 @@ def block_matching(im1, im2, block_size=(3, 3), area=(2 * 3 + 3, 2 * 3 + 3), err
     if len(im1.shape) == 2:
         im1 = np.copy(im1)[:, :, np.newaxis]
         im2 = np.copy(im2)[:, :, np.newaxis]
-    rows, cols, channels = im1.shape
 
     result = np.empty([rows, cols, 2])  # step
 
     # IM1's double loop
     result_i = 0
     for i in range(padding[0], rows + padding[0]):
+        print('row: {}'.format(i))
         result_j = 0
         for j in range(padding[1], cols + padding[1]):
             block1 = im1[i - halfs_block[0]:i + halfs_block[0] + odd_block[0],

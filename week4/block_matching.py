@@ -16,7 +16,7 @@ def reorder_towards_center(vector, center):
 
 
 def block_matching(im1, im2, block_size=(3, 3), step=(1, 1), area=(2 * 3 + 3, 2 * 3 + 3), error_func=ssd,
-                   error_thresh=1):
+                   error_thresh=1, verbose=False):
     debug = False
     if im1.shape != im2.shape:
         print('ERROR: Image shapes are not the same!')
@@ -121,6 +121,7 @@ def block_matching(im1, im2, block_size=(3, 3), step=(1, 1), area=(2 * 3 + 3, 2 
             result[result_i:result_i + step[0], result_j:result_j + step[1], 1] = move[1]
 
             result_j += step[1]
-        print('Processed image row: {}/{} spent time: {}sec'.format(result_i, rows, time.time() - start))
+        if verbose:
+            print('Processed image row: {}/{} spent time: {}sec'.format(result_i, rows, time.time() - start))
         result_i += step[0]
     return result

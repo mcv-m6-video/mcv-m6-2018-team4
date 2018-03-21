@@ -44,6 +44,18 @@ def flow_read(filename):
     # Matrix with vector (u,v) in the channel 0 and 1 and boolean valid in channel 2
     return np.transpose(np.array([F_u, F_v, F_valid]), axes=[1, 2, 0])
 
+def flo_flow_read(filename):
+    with open(filename, 'rb') as f:
+        magic = np.fromfile(f, np.float32, count=1)
+        if 202021.25 != magic:
+            print 'Magic number incorrect. Invalid .flo file: {}'.format(filename)
+        else:
+            h = np.fromfile(f, np.int32, count=1)
+            w = np.fromfile(f, np.int32, count=1)
+            print 'Reading %d x %d flo file' % (w[0], h[0])
+            data = np.fromfile(f, np.float32, count=2 * h * w)
+            # Reshape data into 3D array (columns, rows, bands)
+            flow = np.resize(data, (w[0], h[0], 2))
 
 def flow_error(F_gt, F_est):
     # Remember: Flow vector = (u,v)

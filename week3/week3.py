@@ -253,11 +253,15 @@ def auc_all():
 
 # TASK 3 FUNCTIONS
 
-def task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, prints=True):
-
+def task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, prints=True, valid_pixels=None):
 
     results = background_substraction(train, test, alpha, ro, prints)
     results = hole_filling(results,conn, prints)
+
+    if valid_pixels != None:
+        for i in range(len(results)):
+            results[i][valid_pixels[i]] = 0
+
     results = area_filtering(results, p, prints)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
@@ -287,10 +291,15 @@ def task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p, prints=True)
 
     return results, metrics
 
-def task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True):
+def task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True, valid_pixels=None):
 
     results = background_substraction(train, test, alpha, ro, prints)
     results = hole_filling(results,conn, prints)
+
+    if valid_pixels != None:
+        for i in range(len(results)):
+            results[i][valid_pixels] = 0
+
     results = area_filtering(results, p, prints)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
@@ -404,9 +413,9 @@ def precision_recall_curve(train, test, test_GT, ro, conn, p, prints=True):
         results = background_substraction(train, test, alpha, ro, False)
         metrics_old = results_evaluation(results, test_GT, False)
 
-        # results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, False)
+        results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, False)
         # results, metrics = task3_morphology_fall(train, test, test_GT, alpha, ro, conn, p, False)
-        results, metrics = task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, False)
+        # results, metrics = task3_morphology_highway(train, test, test_GT, alpha, ro, conn, p, False)
 
         metrics_array.append(metrics)
         metrics_old_array.append(metrics_old)

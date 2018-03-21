@@ -31,46 +31,47 @@ def main():
     nsequence = '000045'
     # nsequence = '000157'
 
-    # F_gt = flow_read(os.path.join(path, 'flow_noc', nsequence + '_10.png'))
-    #
-    # sequence = []
-    # frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_10.png')))
-    # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    # sequence.append(frame)
-    # frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_11.png')))
-    # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    # sequence.append(frame)
+    F_gt = flow_read(os.path.join(path, 'flow_noc', nsequence + '_10.png'))
+
+    sequence = []
+    frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_10.png')))
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    sequence.append(frame)
+    frame = cv2.imread(os.path.join(os.path.join(path, 'image_0', nsequence + '_11.png')))
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    sequence.append(frame)
 
     # TASK 1.1 - Block Matching
-    # flow = block_matching(sequence[0], sequence[1], block_size=(16, 16), step=(8, 8), area=(24, 24), area_step=(1,1), error_thresh=1, verbose=True)
-    #
-    # flow_error(F_gt, flow)
-    # rgb_flow = flow_visualization(flow[:, :, 0], flow[:, :, 1], 0)
-    #
+    flow = block_matching(sequence[0], sequence[1], block_size=(16, 16), step=(8, 8), area=(24, 24), area_step=(1,1), error_thresh=1, verbose=True)
+
+    flow_error(F_gt, flow)
+    rgb_flow = flow_visualization(flow[:, :, 0], flow[:, :, 1], 0)
+    plt.imshow(rgb_flow)
+    plt.show()
 
     # grid_search_block_matching(sequence, F_gt)
 
     # TASK 1.2 - Block Matching vs Other Techniques
     # sigma = 120;
     # u, v = optical_flow_lk(sequence[0],sequence[1],sigma)
-
+    #
     # alpha = 0.5;
     # u, v = optical_flow_hs(sequence[0],sequence[1],alpha)
 
 
-    # flow = cv2.calcOpticalFlowFarneback(sequence[0], sequence[1], None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    flow = cv2.calcOpticalFlowFarneback(sequence[0], sequence[1], None, 0.5, 3, 15, 3, 5, 1.2, 0)
 
-    # rgb_flow = flow_visualization(flow[:,:,0],flow[:,:,1],3)
+    rgb_flow = flow_visualization(flow[:,:,0],flow[:,:,1],3)
     # rgb_flow = flow_visualization(F_gt[:,:,0],F_gt[:,:,1],3)
-    # plt.imshow(rgb_flow)
-    # plt.show()
+    plt.imshow(rgb_flow)
+    plt.show()
 
-    # area = np.load('grid_search/area_size_vector3.npy')
-    # block = np.load('grid_search/block_size_vector3.npy')
-    # mse = np.load('grid_search/mse_results3.npy')
-    # pepn = np.load('grid_search/pepn_results3.npy')
+    # area = np.load('grid_search/area_size_vector5.npy')
+    # block = np.load('grid_search/block_size_vector5.npy')
+    # mse = np.load('grid_search/mse_results5.npy')
+    # pepn = np.load('grid_search/pepn_results5.npy')
     # plot_grid_search(mse, area, block, ['Area', 'Block size', 'MSEN'])
-    # plot_grid_search(pepn, area, block, ['Area', 'Block size', 'PEPN'])
+    # # plot_grid_search(pepn, area, block, ['Area', 'Block size', 'PEPN'])
 
     # TASK 2 - VIDEO STABILIZATION
 
@@ -86,31 +87,69 @@ def main():
     test_GT = traffic_GT[len(traffic)/2:]
 
     # TASK 2.1 - Video stabilization with Block Matching
-    # seq_stab, GT_stab = video_stabilization(traffic,traffic_GT)
-    # np.save('seq_stab.npy',seq_stab)
-    # np.save('GTstab.npy',GT_stab)
+    seq_stab, GT_stab = video_stabilization(traffic,traffic_GT)
+    np.save('seq_stab.npy',seq_stab)
+    np.save('GTstab.npy',GT_stab)
 
-    # traffic_np = np.zeros((traffic[0].shape[0],traffic[0].shape[1],3,len(traffic)))
-    # for i in range(len(traffic)):
-    #     traffic_np[:,:,:,i] = traffic[i]
 
     # seq_stab = np.load('seq_stab.npy')
     # GT_stab = np.load('GT_stab.npy')
-    # make_gif(traffic_np,'traffic.gif')
-    # make_gif(GT_stab,'GT_stab.gif')
+
+    traffic_np = np.zeros((traffic[0].shape[0],traffic[0].shape[1],3,len(traffic)))
+    for i in range(len(traffic)):
+        traffic_np[:,:,:,i] = traffic[i]
+
+    make_gif(traffic_np,'traffic.gif')
+    make_gif(GT_stab,'GT_stab.gif')
 
 
     # TASK 2.2 - Block Matching Stabilization vs Other Techniques
 
-    seq_stab = np.load('video_stabilization/seq_stab.npy')
-    GT_stab = np.load('video_stabilization/GTstab.npy')
+    seq_stab_np = np.load('video_stabilization/seq_stab.npy')
+    GT_stab_np = np.load('video_stabilization/GTstab.npy')
+
+    valid_frames_np = get_valid_mask(seq_stab_np)
+
+    seq_stab = []
+    GT_stab = []
+    valid_frames = []
+    for i in range(seq_stab_np.shape[3]):
+        seq_stab.append(seq_stab_np[:,:,:,i].astype(np.uint8))
+        GT_stab.append(GT_stab_np[:,:,:,i].astype(np.uint8))
+        valid_frames.append(valid_frames_np[:,:,i])
 
     # Split dataset
     train_stab = seq_stab[:len(seq_stab)/2]
     test_stab = seq_stab[len(seq_stab)/2:]
+    valid_frames_test = valid_frames[len(seq_stab)/2:]
     test_GT_stab = GT_stab[len(seq_stab)/2:]
 
-    precision_recall_curve(train, train_stab, test, test_stab, test_GT, test_GT_stab, 0.15, 4, 330, prints=True)
+
+    seq_stab2_np = np.load('video_stabilization/ORB_sequence.npy')
+    GT_stab2_np = np.load('video_stabilization/ORB_sequence_GT.npy')
+    valid_frames2_np = get_valid_mask2(seq_stab2_np)
+
+    seq_stab2 = []
+    GT_stab2 = []
+    valid_frames2 = []
+    for i in range(seq_stab2_np.shape[0]):
+        seq_stab2.append(seq_stab2_np[i,0,:,:,:].astype(np.uint8))
+        GT_stab2.append(GT_stab2_np[i,0,:,:,:].astype(np.uint8))
+        valid_frames2.append(valid_frames2_np[:,:,i])
+
+    # Split dataset
+    train_stab2 = seq_stab2[:len(seq_stab2)/2]
+    test_stab2 = seq_stab2[len(seq_stab2)/2:]
+    test_GT_stab2 = GT_stab2[len(seq_stab2)/2:]
+    valid_frames_test2 = valid_frames2[len(seq_stab)/2:]
+
+    # precision_recall_curve(train, train_stab, train_stab2, test, test_stab, test_stab2, test_GT, test_GT_stab, test_GT_stab2, 0.15, 4, 330, valid_frames_test, valid_frames_test2, True)
+    # results, metrics = task2_pipeline(train_stab, test_stab, test_GT_stab, 3.5, 0.15, 4, 330, False)
+    # results, metrics = task3_morphology_traffic(train_stab2, test_stab2, test_GT_stab2, 3.5, 0.15, 4, 330, False,valid_frames2)
+    results, metrics = task3_morphology_traffic(train_stab, test_stab, test_GT_stab, 3.5, 0.15, 4, 330, False, valid_frames)
+    # results, metrics = task3_morphology_traffic(train, test, test_GT, 3.5, 0.15, 4, 330, False, valid_frames)
+
+    make_gif_w3(results)
 
     # TASK 2.3 - Stabilize your own video
 
@@ -125,10 +164,46 @@ def main():
     cap.release()
 
     our_sequence, GT_stab = video_stabilization(our_sequence)
+    our_sequence = our_sequence.astype(np.uint8)
     np.save('our_sequence.npy',our_sequence)
     # seq_stab = np.load('seq_stab.npy')
     make_gif(our_sequence,'our_sequence.gif')
 
+def get_valid_mask(sequence):
+
+    valid_frames = np.zeros((sequence.shape[0],sequence.shape[1],sequence.shape[3]),dtype=np.bool)
+    for i in range(sequence.shape[3]):
+        frame = sequence[:,:,:,i]
+        frame = (frame == 0)
+        valid_frame = np.logical_and(frame[:, :, 0], frame[:, :, 1], frame[:, :, 2])
+        valid_frames[:,:,i] = valid_frame
+
+    return valid_frames
+
+def get_valid_mask2(sequence):
+
+    valid_frames = np.zeros((sequence.shape[2],sequence.shape[3],sequence.shape[0]),dtype=np.bool)
+    for i in range(sequence.shape[0]):
+        frame = sequence[i,:,:,:]
+        frame = (frame == 0)
+        valid_frame = np.logical_and(frame[0, :, :, 0], frame[0, :, :, 1], frame[0, :, :, 2])
+        valid_frames[:,:,i] = valid_frame
+
+    return valid_frames
+
+def make_gif_w3(results):
+    ims = []
+    fig=plt.figure()
+    for i in range(len(results)):
+        im = plt.imshow(results[i],cmap='gray',animated=True)
+        plt.axis("off")
+        ims.append([im])
+
+    anim = animation.ArtistAnimation(fig, ims,interval=len(results), blit=True)
+    anim.save('animation.gif', writer='imagemagick', fps=10)
+    plt.show()
+
+    return
 
 def grid_search_block_matching(sequence, F_gt):
     block_size_vector = np.arange(4, 21, step=2)
@@ -175,13 +250,14 @@ def plot_grid_search(values, x_range, y_range, legend, save_to_file=None):
         plt.savefig(save_to_file, dpi=300)
     plt.show()
 
-def precision_recall_curve(train, train_stab, test, test_stab, test_GT, test_GT_stab, ro, conn, p, prints=True):
+def precision_recall_curve(train, train_stab, train_stab2, test, test_stab, test_stab2, test_GT, test_GT_stab, test_GT_stab2, ro, conn, p, valid_frames_test,valid_frames_test2, prints=True):
     tt = time.time()
     sys.stdout.write('Computing Precision-Recall curve... ')
 
-    alpha_range = np.around(np.arange(0, 16.2, 0.25), decimals=2)
+    alpha_range = np.around(np.arange(0, 20.2, 0.5), decimals=2)
 
     metrics_array = []
+    metrics2_array = []
     metrics_old_array = []
 
     for alpha in alpha_range:
@@ -189,13 +265,17 @@ def precision_recall_curve(train, train_stab, test, test_stab, test_GT, test_GT_
             t = time.time()
             sys.stdout.write("(alpha=" + str(np.around(alpha, decimals=2)) + ") ")
 
-        results_old, metrics_old = task2_pipeline(train, test, test_GT, alpha, ro, conn, p, prints=True)
-        # results, metrics = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, False)
-
-        results, metrics = task2_pipeline(train_stab, test_stab, test_GT_stab, alpha, ro, conn, p, prints=True)
-        # results, metrics = task3_morphology_traffic(train_stab, test_stab, test_GT_stab, alpha, ro, conn, p, False)
+        # results_old, metrics_old = task2_pipeline(train, test, test_GT, alpha, ro, conn, p, False)
+        results, metrics_old = task3_morphology_traffic(train, test, test_GT, alpha, ro, conn, p, False)
+        #
+        # results, metrics = task2_pipeline(train_stab, test_stab, test_GT_stab, alpha, ro, conn, p, False)
+        results, metrics = task3_morphology_traffic(train_stab, test_stab, test_GT_stab, alpha, ro, conn, p, False, valid_frames_test)
+        #
+        # results2, metrics2 = task2_pipeline(train_stab2, test_stab2, test_GT_stab2, alpha, ro, conn, p, False)
+        # results, metrics2 = task3_morphology_traffic(train_stab2, test_stab2, test_GT_stab2, alpha, ro, conn, p, False, valid_frames_test2)
 
         metrics_array.append(metrics)
+        # metrics2_array.append(metrics2)
         metrics_old_array.append(metrics_old)
 
         if prints:
@@ -210,20 +290,28 @@ def precision_recall_curve(train, train_stab, test, test_stab, test_GT, test_GT_
     recall_old = np.array(metrics_old_array)[:, 1]
     auc_val_old = auc(recall_old, precision_old)
 
+    # precision2 = np.array(metrics2_array)[:, 0]
+    # recall2 = np.array(metrics2_array)[:, 1]
+    # auc_val2 = auc(recall2, precision2)
+
     sys.stdout.write("(auc=" + str(np.around(auc_val, decimals=4)) + ") ")
     sys.stdout.write("(auc_old=" + str(np.around(auc_val_old, decimals=4)) + ") ")
+    # sys.stdout.write("(auc2=" + str(np.around(auc_val2, decimals=4)) + ") ")
 
     elapsed = time.time() - tt
     sys.stdout.write(str(elapsed) + ' sec \n')
 
     np.save('metrics_week4_pr.npy',metrics_array)
+    # np.save('metrics_week4_2_pr.npy',metrics2_array)
     np.save('metrics_week3_pr.npy',metrics_old_array)
 
     if prints:
-        plt.plot(recall, precision, color='b', label='With stabilization')
-        plt.plot(recall_old, precision_old, color='r', label='Without stabilization')
+        # plt.plot(recall2, precision2, color='b', label='ORB stabilization')
+        plt.plot(recall, precision, color='g', label='With stabilization')
+        plt.plot(recall_old, precision_old, color='r', label='No stabilization')
         print "AUC stabilized: "+ str(auc_val)
         print "AUC: "+ str(auc_val_old)
+        # print "AUC2: "+ str(auc_val2)
         plt.xlabel('Recall')
         plt.ylabel('Precision')
         plt.ylim([0.0, 1.0])
@@ -247,7 +335,7 @@ def make_gif(results, gifname):
         ims.append([im])
 
     anim = animation.ArtistAnimation(fig, ims, interval=len(results), blit=True)
-    anim.save(gifname, writer='imagemagick', fps=10)
+    anim.save(gifname, writer='imagemagick', fps=20)
     plt.show()
 
     return

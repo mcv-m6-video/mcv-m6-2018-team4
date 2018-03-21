@@ -33,7 +33,7 @@ class Dataset:
         sys.stdout.write('Reading Input... ')
 
         images = self.readImages(self.input_path,'jpg',self.frames_range)
-
+        self.input = images
         elapsed = time.time() - t
         sys.stdout.write(str(elapsed) + ' sec \n')
 
@@ -44,7 +44,7 @@ class Dataset:
         sys.stdout.write('Reading Groundtruth... ')
 
         images = self.readImages(self.gt_path,'png',self.frames_range)
-
+        self.gt = images
         elapsed = time.time() - t
         sys.stdout.write(str(elapsed) + ' sec \n')
 
@@ -69,5 +69,14 @@ class Dataset:
                 image = cv2.imread(os.path.join(path, files[file]))
                 imgs.append(image)
         return imgs
+
+    def get_numpy_gray(self, sequence):
+        h,w,c = sequence[0].shape
+        gray_sequence = np.zeros((h,w,len(sequence)))
+        for i in range(len(sequence)):
+            gray_image = cv2.cvtColor(sequence[i], cv2.COLOR_BGR2GRAY)
+            gray_sequence[:,:,i] = gray_image
+
+        return gray_sequence
 
 

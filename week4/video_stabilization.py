@@ -8,13 +8,13 @@ import time
 from flow_utils_w4 import flow_visualization
 
 def video_stabilization(sequence, GT = None):
-    b_sz = (12,12)
+    b_sz = (24,24)
     prev = sequence[0]
 
     H, W, C = prev.shape
     N = len(sequence)
 
-    seq_stabilized = np.zeros((H,W,C,N))
+    seq_stabilized = np.zeros((H,W,C,N-1))
     seq_stabilized[:,:,:,0] = prev
     GT_stabilized = []
 
@@ -22,10 +22,10 @@ def video_stabilization(sequence, GT = None):
         GT_stabilized = np.zeros((H,W,C,N))
         GT_stabilized[:,:,:,0] = GT[0]
 
-    for i in range(1,N):
+    for i in range(1,N-1):
         t = time.time()
         next = sequence[i]
-        flow = block_matching(prev, next, block_size=b_sz, step=b_sz, area=(20,20))
+        flow = block_matching(prev, next, block_size=b_sz, step=b_sz, area=(30,30))
 
         mag, ang = cv2.cartToPolar(flow[:,:,0], flow[:,:,1])
         uniques, counts = np.unique(mag, return_counts=True)

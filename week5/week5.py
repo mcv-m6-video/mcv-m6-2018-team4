@@ -4,8 +4,8 @@ from dataset import Dataset
 
 def main():
 
-    # dataset_name = 'highway'
-    dataset_name = 'traffic'
+    dataset_name = 'highway'
+    # dataset_name = 'traffic'
 
     if dataset_name == 'highway':
         frames_range = (1051, 1350)
@@ -13,6 +13,7 @@ def main():
         ro = 0.25
         p = 220
         conn = 4
+        distThreshold = 30
 
     elif dataset_name == 'traffic':
         frames_range = (951, 1050)
@@ -20,6 +21,7 @@ def main():
         ro = 0.15
         p = 330
         conn = 4
+        distThreshold = 80
 
     else:
         print "Invalid dataset name"
@@ -36,6 +38,7 @@ def main():
     test = imgs[len(imgs)/2:]
     test_GT = imgs_GT[len(imgs)/2:]
 
+    # Extract masks from sequences
     if dataset_name == 'highway':
         results, metrics = morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True, valid_pixels=None)
 
@@ -45,7 +48,8 @@ def main():
         print "Invalid dataset name"
         return
 
-    tracking = objectTracker(test, results)
+    # Perform the tracking
+    tracking = objectTracker(test, results, distThreshold)
 
     make_gif(tracking, 'tracking.gif')
 

@@ -5,7 +5,7 @@ from skimage import measure
 from week5 import *
 from DetectedObject import detectedObject
 
-def objectTracker(images, masks):
+def objectTracker(images, masks, distThreshold):
     t = time.time()
     sys.stdout.write('Computing object tracking... ')
 
@@ -13,67 +13,72 @@ def objectTracker(images, masks):
     detections = []
     car_counter = 0
 
-    # First frame
+    # First frame -
     im_bb = images[0]
     mask = masks[0]
-    cc_mask = measure.label(mask, background=0)
+
+
+    cc_mask = measure.label(mask, background=0) #get conected components
     nlbl = cc_mask.flatten().max()
     for lbl in range(1,nlbl+1):
         obj_coord = np.nonzero(cc_mask == lbl)
         object = detectedObject(car_counter, obj_coord)
-        detections.append(object)
+        detections.append(object) #add object to the detections list
         car_counter += 1
-        im_bb = drawBBox(im_bb, object.bbox)
+        im_bb = drawBBox(im_bb, object.bbox) #draw the bounding box in the image
 
-    # plt.imshow(im_bb)
-    # plt.show()
     frames_bb.append(im_bb)
 
+    # Rest of frames
     for i in range(1,len(images)):
         im_bb = images[i]
         mask = masks[i]
 
+        # Make all the detections not visible
         for detection in detections:
             detection.visible = False
 
-        cc_mask = measure.label(mask, background=0)
+        cc_mask = measure.label(mask, background=0) #get conected components
         nlbl = cc_mask.flatten().max()
         for lbl in range(1, nlbl + 1):
+            # Create a temporal object to analize
             obj_coord = np.nonzero(cc_mask == lbl)
             object = detectedObject(np.nan, obj_coord)
 
+            # Search variables inizalitation
             minDist = np.inf
             objectFound = False
 
             for detection in detections:
 
+                # Predict position with Kalman
                 prediction = detection.kalman.predict()
                 dist = euclideanDistance(object.center, prediction)
 
-                # if(distance < kalmanThreshold):
-                if(dist < 80):
-                    # Search the nearly object
+                # Search the nearest object
+                if(dist < distThreshold):
                     if dist < minDist:
                         minDist = dist
                         nearest_detection = detection
                         objectFound = True
 
             if objectFound:
+                # Update Kalman
                 nearest_detection.kalman.update(object.center)
-                nearest_detection.updateBBox(object.bbox)
+
+                # Make detection visible and update the Bounding Box
                 nearest_detection.visible = True
+                nearest_detection.updateBBox(object.bbox)
             else:
+                # Add the new detected object to the detections list
                 car_counter +=1
                 object.id = car_counter
                 detections.append(object)
 
-
+        # Draw the bounding boxes for the visible detections
         for detection in detections:
             if detection.visible:
                 im_bb = drawBBox(im_bb, detection.bbox)
-
-        # plt.imshow(im_bb)
-        # plt.show()
 
         frames_bb.append(im_bb)
 

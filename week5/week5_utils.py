@@ -136,17 +136,17 @@ def morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True, va
 def results_evaluation(results, test_GT, prints=True):
     # Evaluation sklearn
     if prints:
-        sys.stdout.write('Evaluating results... ')
+        sys.stdout.write('\nEvaluating results... ')
         t = time.time()
     metrics = ev.getMetrics(test_GT, results)
 
     if prints:
         elapsed = time.time() - t
-        sys.stdout.write(str(elapsed) + ' sec \n\n')
+        sys.stdout.write(str(elapsed) + ' sec \n')
 
-        print "Recall: " + str(metrics[0] * 100)
-        print "Precision: " + str(metrics[1] * 100)
-        print "F1: " + str(metrics[2] * 100)
+        print "\t - Recall: " + str(metrics[0] * 100)
+        print "\t - Precision: " + str(metrics[1] * 100)
+        print "\t - F1: " + str(metrics[2] * 100)
         print ""
 
     return metrics

@@ -4,8 +4,8 @@ from dataset import Dataset
 
 def main():
 
-    dataset_name = 'highway'
-    # dataset_name = 'traffic'
+    # dataset_name = 'highway'
+    dataset_name = 'traffic'
 
     if dataset_name == 'highway':
         frames_range = (1051, 1350)

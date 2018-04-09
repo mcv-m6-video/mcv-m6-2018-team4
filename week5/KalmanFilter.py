@@ -1,39 +1,40 @@
-import sys
-sys.path.append('../')
-
 
 class KalmanFilter:
 
-    def __init__(self, initialPosition):
+    def __init__(self, firstMeasurement):
 
-        self.currentPositionX = initialPosition[0]
-        self.currentPositionY = initialPosition[1]
-        self.prioriEstimateX = self.currentPositionX
-        self.prioriEstimateY = self.currentPositionY
-        self.posterioriErrorX = 0
-        self.posterioriErrorY = 0
-        self.prioriErrorX = 0
-        self.prioriErrorY = 0
-        self.gainX = 0
-        self.gainY = 0
-        self.Q = 1e-5  # process variance
-        self.R = 0.1 ** 2  # estimate of measurement variance, change to see effect
+        # Variables initialization
+
+        # Prior estimate - X_k'
+        self.priorEstimateX = 0
+        self.priorEstimateY = 0
+
+        # Prior errors covariance
+        self.priorErrorX = 1
+        self.priorErrorY = 1
+
+        self.Q = 0.001   # process variance
+        self.R = 0.5    # estimate of measurement variance, change to see effect
+
+        self.update(firstMeasurement)
 
 
-    def predict(self):
-        return [self.prioriEstimateX, self.prioriEstimateY]
+    def predict(self): # Time Update
+        self.priorErrorX = self.posteriorErrorX + self.Q
+        self.priorEstimateX = self.posteriorEstimateX
 
-    def update(self, currentPosition):
-        # Compute X update
-        self.prioriErrorX = self.posterioriErrorX + self.Q
-        self.gainX = self.prioriErrorX / (self.prioriErrorX + self.R)
-        self.currentPositionX = self.prioriEstimateX + self.gainX * (currentPosition[0]-self.prioriEstimateX)
-        self.posterioriErrorX = (1-self.gainX)*self.prioriErrorX
-        self.prioriEstimateX = self.currentPositionX
+        self.priorErrorY = self.posteriorErrorY + self.Q
+        self.priorEstimateY = self.posteriorEstimateY
 
-        # Compute Y update
-        self.prioriErrorY = self.posterioriErrorY + self.Q
-        self.gainY = self.prioriErrorY / (self.prioriErrorY + self.R)
-        self.currentPositionY = self.prioriEstimateY + self.gainY * (currentPosition[1]-self.prioriEstimateY)
-        self.posterioriErrorY = (1-self.gainY)*self.prioriErrorY
-        self.prioriEstimateY = self.currentPositionY
+        return [self.priorEstimateX, self.priorEstimateY]
+
+    def update(self, measurement): # Measurement Update
+
+        self.gainX = self.priorErrorX / (self.priorErrorX + self.R)
+        self.posteriorEstimateX = self.priorEstimateX + self.gainX * (measurement[0]-self.priorEstimateX)
+        self.posteriorErrorX = (1-self.gainX)*self.priorErrorX
+
+        self.gainY = self.priorErrorY / (self.priorErrorY + self.R)
+        self.posteriorEstimateY = self.priorEstimateY + self.gainY * (measurement[1]-self.priorEstimateY)
+        self.posteriorErrorY = (1-self.gainY)*self.priorErrorY
+

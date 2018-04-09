@@ -16,6 +16,31 @@ from gaussian_modelling import GaussianModelling
 import morphology as morph
 import evaluation as ev
 
+def mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset, prints=True, valid_pixels=None):
+
+    results = background_substraction(train, test, alpha, ro, prints)
+    results = hole_filling(results,conn, prints)
+
+    # if valid_pixels != None:
+    #     for i in range(len(results)):
+    #         results[i][valid_pixels[i]] = 0
+
+    results = area_filtering(results, p, prints)
+
+    # Morphology
+    if dataset == 'highway':
+        results = morphology_highway(results, conn, prints=True)
+
+    elif dataset == 'traffic':
+        results = morphology_traffic(results, conn, prints=True)
+    else:
+        print "Invalid dataset name"
+        return
+
+    metrics = results_evaluation(results, test_GT, prints)
+
+    return results, metrics
+
 
 def background_substraction(train, test, alpha, ro, prints=True):
 
@@ -73,65 +98,45 @@ def area_filtering(images, pixels, prints):
 
     return results
 
-def morphology_traffic(train, test, test_GT, alpha, ro, conn, p, prints=True, valid_pixels=None):
+def morphology_traffic(images, conn, prints=True):
 
-    results = background_substraction(train, test, alpha, ro, prints)
-    results = hole_filling(results,conn, prints)
-
-    if valid_pixels != None:
-        for i in range(len(results)):
-            results[i][valid_pixels[i]] = 0
-
-    results = area_filtering(results, p, prints)
-
-    # Morphology start
-    t = time.time()
-    sys.stdout.write('Computing morphology... ')
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing morphology... ')
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
-    results = morph.Closing(results, kernel, False)
+    results = morph.Closing(images, kernel, False)
 
     results = hole_filling(results,conn, False)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (17, 17))
     results = morph.Opening(results, kernel, False)
 
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n')
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
 
-    metrics = results_evaluation(results, test_GT, prints)
+    return results
 
-    return results, metrics
+def morphology_highway(images, conn, prints=True):
 
-def morphology_highway(train, test, test_GT, alpha, ro, conn, p, prints=True, valid_pixels=None):
-
-    results = background_substraction(train, test, alpha, ro, prints)
-    results = hole_filling(results,conn, prints)
-
-    if valid_pixels != None:
-        for i in range(len(results)):
-            results[i][valid_pixels] = 0
-
-    results = area_filtering(results, p, prints)
-
-    # Morphology start
-    t = time.time()
-    sys.stdout.write('Computing morphology... ')
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing morphology... ')
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-    results = morph.Closing(results, kernel, False)
+    results = morph.Closing(images, kernel, False)
 
     results = hole_filling(results,conn, False)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 1))
     results = morph.Opening(results, kernel, False)
 
-    elapsed = time.time() - t
-    sys.stdout.write(str(elapsed) + ' sec \n')
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
 
-    metrics = results_evaluation(results, test_GT, prints)
-
-    return results, metrics
+    return results
 
 def results_evaluation(results, test_GT, prints=True):
     # Evaluation sklearn

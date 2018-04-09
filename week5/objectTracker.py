@@ -13,25 +13,24 @@ def objectTracker(images, masks, distThreshold):
     detections = []
     car_counter = 0
 
-    # First frame -
-    im_bb = images[0]
+    # First frame
+    im_bb = images[0].copy()
     mask = masks[0]
-
 
     cc_mask = measure.label(mask, background=0) #get conected components
     nlbl = cc_mask.flatten().max()
     for lbl in range(1,nlbl+1):
         obj_coord = np.nonzero(cc_mask == lbl)
-        object = detectedObject(car_counter, obj_coord)
-        detections.append(object) #add object to the detections list
         car_counter += 1
-        im_bb = drawBBox(im_bb, object.bbox) #draw the bounding box in the image
+        object = detectedObject(car_counter, obj_coord, 0)
+        detections.append(object) #add object to the detections list
+        im_bb = drawBBox(im_bb, object.bbox, object.id) #draw the bounding box in the image
 
     frames_bb.append(im_bb)
 
     # Rest of frames
     for i in range(1,len(images)):
-        im_bb = images[i]
+        im_bb = images[i].copy()
         mask = masks[i]
 
         # Make all the detections not visible
@@ -43,7 +42,7 @@ def objectTracker(images, masks, distThreshold):
         for lbl in range(1, nlbl + 1):
             # Create a temporal object to analize
             obj_coord = np.nonzero(cc_mask == lbl)
-            object = detectedObject(np.nan, obj_coord)
+            object = detectedObject(np.nan, obj_coord, i)
 
             # Search variables inizalitation
             minDist = np.inf
@@ -68,7 +67,7 @@ def objectTracker(images, masks, distThreshold):
 
                 # Make detection visible and update the Bounding Box
                 nearest_detection.visible = True
-                nearest_detection.updateBBox(object.bbox)
+                nearest_detection.updateBBox(object.bbox, i)
             else:
                 # Add the new detected object to the detections list
                 car_counter +=1
@@ -78,27 +77,27 @@ def objectTracker(images, masks, distThreshold):
         # Draw the bounding boxes for the visible detections
         for detection in detections:
             if detection.visible:
-                im_bb = drawBBox(im_bb, detection.bbox)
+                im_bb = drawBBox(im_bb, detection.bbox, detection.id)
 
         frames_bb.append(im_bb)
 
     elapsed = time.time() - t
     sys.stdout.write(str(elapsed) + ' sec \n')
+    print "Cars detected " + str(car_counter)
+    return frames_bb, detections
 
-    return frames_bb
-
-def drawBBox(im, bbox):
+def drawBBox(im, bbox, id):
     topLeft = (bbox[2], bbox[0])
     bottomRight = (bbox[3], bbox[1])
-    bottomLeft = (bbox[2], bbox[1])
     color = (0, 255, 0)
     border_size = 2
     im = cv2.rectangle(im, topLeft, bottomRight, color, border_size)
 
-    # font = cv2.FONT_HERSHEY_SIMPLEX
-    # font_scale = 0.2
-    # font_thickness = 1
-    # im = cv2.putText(im, 'ID', bottomLeft, font, font_scale, (255, 0, 0), font_thickness, cv2.LINE_AA)
+    bottomLeft = (bbox[2], bbox[1]+5)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.5
+    font_thickness = 1
+    im = cv2.putText(im, str(id), bottomLeft, font, font_scale, (255, 0, 0), font_thickness, cv2.LINE_AA)
 
     return im
 

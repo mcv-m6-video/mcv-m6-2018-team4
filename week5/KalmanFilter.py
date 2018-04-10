@@ -2,7 +2,6 @@
 class KalmanFilter:
 
     def __init__(self, firstMeasurement):
-
         # Variables initialization
 
         # Prior estimate - X_k'
@@ -29,7 +28,6 @@ class KalmanFilter:
         return [self.priorEstimateX, self.priorEstimateY]
 
     def update(self, measurement): # Measurement Update
-
         self.gainX = self.priorErrorX / (self.priorErrorX + self.R)
         self.posteriorEstimateX = self.priorEstimateX + self.gainX * (measurement[0]-self.priorEstimateX)
         self.posteriorErrorX = (1-self.gainX)*self.priorErrorX

@@ -34,6 +34,8 @@ def computeVelocity(images, detections):
     plt.imshow(im_warped)
     plt.show()
 
+
+
     return 0
 
 

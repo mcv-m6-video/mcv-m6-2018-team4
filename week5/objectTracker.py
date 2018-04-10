@@ -108,7 +108,7 @@ def drawBBox(im, bbox, id, vel=None, center=None, kalman=None):
     im = cv2.rectangle(im, topLeft, bottomRight, color, border_size)
 
     # Rectangle labels
-    labelHeight = 10
+    labelHeight = 15
     padding = 2
     bottomHalf = bbox[2] + (bbox[3] - bbox[2]) / 2
 
@@ -126,8 +126,8 @@ def drawBBox(im, bbox, id, vel=None, center=None, kalman=None):
 
     # id
     # Center for the label
-    xCenter = bbox[2] + ((bottomHalf - bbox[2]) / 2)
-    yCenter = bbox[1] + padding + labelHeight / 2
+    xCenter = bbox[2] + padding*2
+    yCenter = bbox[1] + padding*2 + labelHeight / 2
     idCenterPos = (xCenter, yCenter)
     font = cv2.FONT_HERSHEY_PLAIN
     font_scale = 0.5
@@ -138,7 +138,7 @@ def drawBBox(im, bbox, id, vel=None, center=None, kalman=None):
 
     # vel
     # Center for the label
-    xCenter = bbox[3] - ((bottomHalf - bbox[2]) / 2)
+    xCenter = bottomHalf + padding
     idCenterPos = (xCenter, yCenter)
     if vel != None:
         text = str(np.round(vel,decimals=2)) + " km/h"

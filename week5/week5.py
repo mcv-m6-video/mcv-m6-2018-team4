@@ -50,9 +50,23 @@ def main():
     images_bb, detections = objectTracker(test, cleaned_GT, distThreshold)
 
     # Compute velocities
-    # velocities = computeVelocity(test,detections)
+    computeVelocity(test,detections)
 
-    make_gif(images_bb, 'tracking.gif')
+    images_bb2 = drawBBoxes(test,detections)
+
+    # make_gif(images_bb2, 'tracking.gif')
+
+def drawBBoxes(images,detections):
+    new_velocity_weight = 0.1
+    for detection in detections:
+        for i in range(1,len(detection.framesList)):
+            mean_velocity = (detection.velocities[i])*new_velocity_weight + (detection.velocities[i-1])*(1-new_velocity_weight)
+            images[detection.framesList[i]] = drawBBox(images[detection.framesList[i]], detection.bboxList[i], detection.id, vel=np.round(mean_velocity,decimals=2))
+    for i in range(len(images)):
+        cv2.imshow("frame",images[i])
+        cv2.waitKey(0)
+
+    return images
 
 
 def cleanGT(GT):
@@ -60,7 +74,7 @@ def cleanGT(GT):
     cleaned_GT = []
     for i in range(len(GT)):
         gt_i = GT[i][:,:,0]
-        gt_true = (gt_i == 255)
+        gt_true = (gt_i >= 170)
 
         cleaned_GT.append(gt_true)
 

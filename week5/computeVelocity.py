@@ -35,9 +35,6 @@ def computeVelocity(images, detections):
     plt.imshow(im_warped)
     plt.show()
 
-
-    road_line = l1
-
     line_longitude = 2.5 # in meters
     p1_aereal = np.matmul(H,p1.transpose())
     p1_aereal = p1_aereal/p1_aereal[2]
@@ -68,12 +65,7 @@ def computeVelocity(images, detections):
 
             detection.updateVelocity(distance/time)
 
-            print (distance/time)*3.6
-
-    # (190, 120)
-    # (row, col) = (272, 189)
-    # (row, col) = (254, 71)
-    # (row, col) = (308, 104)
+            # print (distance/time)*3.6
 
     return 0
 

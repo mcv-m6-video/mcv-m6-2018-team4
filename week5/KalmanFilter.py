@@ -13,7 +13,7 @@ class KalmanFilter:
         self.priorErrorY = 1
 
         self.Q = 0.001   # process variance
-        self.R = 0.5    # estimate of measurement variance, change to see effect
+        self.R = 0    # estimate of measurement variance, change to see effect
 
         self.update(firstMeasurement)
 
@@ -30,9 +30,12 @@ class KalmanFilter:
     def update(self, measurement): # Measurement Update
         self.gainX = self.priorErrorX / (self.priorErrorX + self.R)
         self.posteriorEstimateX = self.priorEstimateX + self.gainX * (measurement[0]-self.priorEstimateX)
+        # self.posteriorEstimateX = measurement[0]
         self.posteriorErrorX = (1-self.gainX)*self.priorErrorX
 
         self.gainY = self.priorErrorY / (self.priorErrorY + self.R)
+        # self.gainY = 1.3
         self.posteriorEstimateY = self.priorEstimateY + self.gainY * (measurement[1]-self.priorEstimateY)
+        # self.posteriorEstimateY = measurement[1]
         self.posteriorErrorY = (1-self.gainY)*self.priorErrorY
 

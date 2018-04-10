@@ -29,12 +29,51 @@ def computeVelocity(images, detections):
     H = np.array([[1, -v[0]/v[1], 0],
                  [0,    1,       0],
                  [0,  -1/v[1],   1]])
+
     im_warped = cv2.warpPerspective(image0, H, (image0.shape[1],image0.shape[0]))
 
     plt.imshow(im_warped)
     plt.show()
 
 
+    road_line = l1
+
+    line_longitude = 2.5 # in meters
+    p1_aereal = np.matmul(H,p1.transpose())
+    p1_aereal = p1_aereal/p1_aereal[2]
+
+    p2_aereal = np.matmul(H,p2.transpose())
+    p2_aereal = p2_aereal/p2_aereal[2]
+
+    scale_factor = line_longitude/abs(p1_aereal[1]-p2_aereal[1]);
+
+    for detection in detections:
+        for i in range(1,len(detection.posList)):
+            p1 = detection.posList[i-1]
+            p2 = detection.posList[i]
+
+            p1_h = np.array([p1[0], p1[1], 1])
+            p2_h = np.array([p2[0], p2[1], 1])
+
+            p1_aereal = np.matmul(H, p1_h.transpose())
+            p1_aereal = p1_aereal / p1_aereal[2]
+
+            p2_aereal = np.matmul(H, p2_h.transpose())
+            p2_aereal = p2_aereal / p2_aereal[2]
+
+            distance = (p2_aereal - p1_aereal)
+            distance = np.sqrt((distance[0]**2)+(distance[1]**2))*scale_factor
+
+            time = (detection.framesList[i] - detection.framesList[i-1])*(1./25)
+
+            detection.updateVelocity(distance/time)
+
+            print (distance/time)*3.6
+
+    # (190, 120)
+    # (row, col) = (272, 189)
+    # (row, col) = (254, 71)
+    # (row, col) = (308, 104)
 
     return 0
 

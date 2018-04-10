@@ -33,9 +33,13 @@ def objectTracker(images, masks, distThreshold):
         im_bb = images[i].copy()
         mask = masks[i]
 
-        # Make all the detections not visible
         for detection in detections:
+            # Make all the detections not visible
             detection.visible = False
+
+            # Make all the detections not visible
+            if((i- detection.framesList[-1])>5):
+                detection.finished = True
 
         cc_mask = measure.label(mask, background=0) #get conected components
         nlbl = cc_mask.flatten().max()
@@ -49,17 +53,18 @@ def objectTracker(images, masks, distThreshold):
             objectFound = False
 
             for detection in detections:
+                if not detection.finished:
+                    # Predict position with Kalman
+                    prediction = detection.kalman.predict()
+                    dist = euclideanDistance(object.center, prediction)
 
-                # Predict position with Kalman
-                prediction = detection.kalman.predict()
-                dist = euclideanDistance(object.center, prediction)
-
-                # Search the nearest object
-                if(dist < distThreshold):
-                    if dist < minDist:
-                        minDist = dist
-                        nearest_detection = detection
-                        objectFound = True
+                    print "dist to  " + str(detection.id)+ ": " +  str(dist)
+                    # Search the nearest object
+                    if(dist < distThreshold):
+                        if dist < minDist:
+                            minDist = dist
+                            nearest_detection = detection
+                            objectFound = True
 
             if objectFound:
                 # Update Kalman
@@ -76,8 +81,11 @@ def objectTracker(images, masks, distThreshold):
 
         # Draw the bounding boxes for the visible detections
         for detection in detections:
-            if detection.visible:
-                im_bb = drawBBox(im_bb, detection.bbox, detection.id)
+            if not detection.finished:
+                im_bb = drawBBox(im_bb, detection.bbox, detection.id, center=(int(detection.center[1]),int(detection.center[0])), kalman=(int(detection.kalman.priorEstimateY), int(detection.kalman.priorEstimateX)))
+
+        cv2.imshow('frame', im_bb)
+        cv2.waitKey(0)
 
         frames_bb.append(im_bb)
 
@@ -86,18 +94,27 @@ def objectTracker(images, masks, distThreshold):
     print "Cars detected " + str(car_counter)
     return frames_bb, detections
 
-def drawBBox(im, bbox, id):
+def drawBBox(im, bbox, id, center=(0,0), kalman=(0,0)):
+    # bounding box
     topLeft = (bbox[2], bbox[0])
     bottomRight = (bbox[3], bbox[1])
     color = (0, 255, 0)
     border_size = 2
     im = cv2.rectangle(im, topLeft, bottomRight, color, border_size)
 
+    # id
     bottomLeft = (bbox[2], bbox[1]+5)
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 0.5
     font_thickness = 1
-    im = cv2.putText(im, str(id), bottomLeft, font, font_scale, (255, 0, 0), font_thickness, cv2.LINE_AA)
+    blue_color = (255, 0, 0)
+    im = cv2.putText(im, str(id), bottomLeft, font, font_scale, blue_color, font_thickness, cv2.LINE_AA)
+
+    # center bbox
+    im = cv2.circle(im, center, 4, blue_color, -1)
+
+    # kalman
+    im = cv2.circle(im, kalman, 4,  (0, 0, 255), -1)
 
     return im
 

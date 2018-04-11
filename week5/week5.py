@@ -5,9 +5,10 @@ from computeVelocity import *
 
 def main():
 
-    # dataset_name = 'highway'
-    dataset_name = 'traffic'
-
+    dataset_name = 'highway'
+    # dataset_name = 'traffic'
+    # dataset_name = 'sequence_parc_nova_icaria'
+           
     if dataset_name == 'highway':
         frames_range = (1051, 1350)
         alpha = 1.9
@@ -24,6 +25,14 @@ def main():
         conn = 4
         distThreshold = 40
 
+    elif dataset_name == 'sequence_parc_nova_icaria':
+        frames_range = (210, 610)
+        alpha = 2.5
+        ro = 0.15
+        p = 300
+        conn = 4
+        distThreshold = 40
+
     else:
         print "Invalid dataset name"
         return
@@ -32,22 +41,25 @@ def main():
     dataset = Dataset(dataset_name,frames_range[0], frames_range[1])
 
     imgs = dataset.readInput()
-    imgs_GT = dataset.readGT()
+    # imgs_GT = dataset.readGT()
 
     # Split dataset
     train = imgs[:len(imgs)/2]
     test = imgs[len(imgs)/2:]
-    test_GT = imgs_GT[len(imgs)/2:]
+    # test_GT = imgs_GT[len(imgs)/2:]
+    test_GT = []
 
     # Clean GT
-    cleaned_GT = cleanGT(test_GT)
+    # cleaned_GT = cleanGT(test_GT)
     # make_gif_mask(cleaned_GT)
 
     # Extract masks from sequences
-    # results, metrics = mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset_name, prints=True)
+    results, metrics = mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset_name, prints=True)
+
+    # make_gif_mask(results)
 
     # Perform the tracking
-    images_bb, detections = objectTracker(test, cleaned_GT, distThreshold)
+    images_bb, detections = objectTracker(test, results, distThreshold)
 
     # Compute velocities
     computeVelocity(test,detections)
@@ -70,7 +82,6 @@ def drawBBoxes(images,detections):
 
 
 def cleanGT(GT):
-
     cleaned_GT = []
     for i in range(len(GT)):
         gt_i = GT[i][:,:,0]

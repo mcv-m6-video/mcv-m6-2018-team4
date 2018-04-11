@@ -35,7 +35,7 @@ def computeVelocity(images, detections):
     plt.imshow(im_warped)
     plt.show()
 
-    line_longitude = 2.5 # in meters
+    line_longitude = 4.5 # in meters
     p1_aereal = np.matmul(H,p1.transpose())
     p1_aereal = p1_aereal/p1_aereal[2]
 
@@ -44,26 +44,29 @@ def computeVelocity(images, detections):
 
     scale_factor = line_longitude/abs(p1_aereal[1]-p2_aereal[1]);
 
+    print "scale factor: " + str(scale_factor)
+    frame_step = 1
     for detection in detections:
-        for i in range(1,len(detection.posList)):
-            p1 = detection.posList[i-1]
-            p2 = detection.posList[i]
+        if(len(detection.posList)>frame_step):
+            for i in range(frame_step,len(detection.posList),frame_step):
+                p1 = detection.posList[i-frame_step]
+                p2 = detection.posList[i]
 
-            p1_h = np.array([p1[0], p1[1], 1])
-            p2_h = np.array([p2[0], p2[1], 1])
+                p1_h = np.array([p1[0], p1[1], 1])
+                p2_h = np.array([p2[0], p2[1], 1])
 
-            p1_aereal = np.matmul(H, p1_h.transpose())
-            p1_aereal = p1_aereal / p1_aereal[2]
+                p1_aereal = np.matmul(H, p1_h.transpose())
+                p1_aereal = p1_aereal / p1_aereal[2]
 
-            p2_aereal = np.matmul(H, p2_h.transpose())
-            p2_aereal = p2_aereal / p2_aereal[2]
+                p2_aereal = np.matmul(H, p2_h.transpose())
+                p2_aereal = p2_aereal / p2_aereal[2]
 
-            distance = (p2_aereal - p1_aereal)
-            distance = np.sqrt((distance[0]**2)+(distance[1]**2))*scale_factor
+                distance = (p2_aereal - p1_aereal)
+                distance = np.sqrt((distance[0]**2)+(distance[1]**2))*scale_factor
 
-            time = (detection.framesList[i] - detection.framesList[i-1])*(1./25)
+                time = (detection.framesList[i] - detection.framesList[i-frame_step])*(1./25)
 
-            detection.updateVelocity(distance/time)
+                detection.updateVelocity(distance/time,frame_step)
 
             # print (distance/time)*3.6
 

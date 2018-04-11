@@ -13,7 +13,7 @@ class KalmanFilter:
         self.priorErrorY = 1
 
         self.Q = 0.001   # process variance
-        self.R = 0    # estimate of measurement variance, change to see effect
+        self.R = 0.00001    # estimate of measurement variance, change to see effect
 
         self.update(firstMeasurement)
 

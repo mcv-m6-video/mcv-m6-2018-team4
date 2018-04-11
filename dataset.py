@@ -18,6 +18,11 @@ class Dataset:
         elif dataset_name == 'fall':
             path = "../../Datasets/fall/"
 
+        elif dataset_name == 'sequence_parc_nova_icaria':
+            path = "../../Datasets/sequence_parc_nova_icaria/"
+
+        elif dataset_name == 'week5_dataset':
+            path = "../../Datasets/week5_dataset/"
         else:
             print "Invalid dataset name"
             return
@@ -26,13 +31,19 @@ class Dataset:
         self.gt_path = path + "groundtruth/"
         self.input_path = path + "input/"
 
+        if dataset_name == 'week5_dataset':
+            self.ROI = ROI = cv2.imread(path+'ROI.jpg')
+            self.ROI = [ROI[:,:,0]<150]
+        else:
+            self.ROI = None
+
         self.frames_range = (frame_init-1,frame_end)
 
-    def readInput(self):
+    def readInput(self,format):
         t = time.time()
         sys.stdout.write('Reading Input... ')
 
-        images = self.readImages(self.input_path,'jpg',self.frames_range)
+        images = self.readImages(self.input_path, format, self.frames_range)
         self.input = images
         elapsed = time.time() - t
         sys.stdout.write(str(elapsed) + ' sec \n')
@@ -78,5 +89,9 @@ class Dataset:
             gray_sequence[:,:,i] = gray_image
 
         return gray_sequence
+
+    def getROI(self):
+        return self.ROI
+
 
 

@@ -16,14 +16,18 @@ from gaussian_modelling import GaussianModelling
 import morphology as morph
 import evaluation as ev
 
-def mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset, prints=True, valid_pixels=None):
+def mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset, prints=True, ROI=None, valid_pixels=None):
 
     results = background_substraction(train, test, alpha, ro, prints)
     results = hole_filling(results,conn, prints)
 
-    # if valid_pixels != None:
-    #     for i in range(len(results)):
-    #         results[i][valid_pixels[i]] = 0
+    if ROI != None:
+        for i in range(len(results)):
+            results[i][ROI[0]] = 0
+
+    if valid_pixels != None:
+        for i in range(len(results)):
+            results[i][valid_pixels[i]] = 0
 
     results = area_filtering(results, p, prints)
 
@@ -34,8 +38,14 @@ def mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset, prints=True
     elif dataset == 'traffic':
         results = morphology_traffic(results, conn, prints=True)
 
+    elif dataset == 'traffic_stab':
+        results = morphology_traffic_stab(results, conn, prints=True)
+
     elif dataset == 'sequence_parc_nova_icaria':
         results = morphology_traffic(results, conn, prints=True)
+
+    elif dataset == 'week5_dataset':
+        results = morphology_week5(results, conn, prints=True)
     else:
         print "Invalid dataset name"
         return
@@ -124,6 +134,26 @@ def morphology_traffic(images, conn, prints=True):
 
     return results
 
+def morphology_traffic_stab(images, conn, prints=True):
+
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing morphology... ')
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    results = morph.Closing(images, kernel, False)
+
+    results = hole_filling(results,conn, False)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (22, 22))
+    results = morph.Opening(results, kernel, False)
+
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
+
+    return results
+
 def morphology_highway(images, conn, prints=True):
 
     if prints:
@@ -136,6 +166,27 @@ def morphology_highway(images, conn, prints=True):
     results = hole_filling(results,conn, False)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 1))
+    results = morph.Opening(results, kernel, False)
+
+    if prints:
+        elapsed = time.time() - t
+        sys.stdout.write(str(elapsed) + ' sec \n')
+
+    return results
+
+
+def morphology_week5(images, conn, prints=True):
+
+    if prints:
+        t = time.time()
+        sys.stdout.write('Computing morphology... ')
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
+    results = morph.Closing(images, kernel, False)
+
+    results = hole_filling(results,conn, False)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (13, 13))
     results = morph.Opening(results, kernel, False)
 
     if prints:
@@ -192,7 +243,7 @@ def make_gif(results, gifname):
         ims.append([im])
 
     anim = animation.ArtistAnimation(fig, ims, interval=len(results), blit=True)
-    anim.save(gifname, writer='imagemagick', fps=20)
+    anim.save(gifname, writer='imagemagick', fps=5)
 
     elapsed = time.time() - t
     sys.stdout.write(str(elapsed) + ' sec \n\n')

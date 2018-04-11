@@ -99,62 +99,6 @@ def objectTracker(images, masks, distThreshold, verbose=False):
     print "Cars detected " + str(car_counter)
     return frames_bb, detections
 
-def drawBBox(im, bbox, id, vel=None, center=None, kalman=None):
-    # bounding box
-    topLeft = (bbox[2], bbox[0])
-    bottomRight = (bbox[3], bbox[1])
-    color = (0, 255, 0)
-    border_size = 2
-    im = cv2.rectangle(im, topLeft, bottomRight, color, border_size)
-
-    # Rectangle labels
-    labelHeight = 15
-    padding = 2
-    bottomHalf = bbox[2] + (bbox[3] - bbox[2]) / 2
-
-    labtopLeft = (bbox[2], bbox[1] + padding)
-    labbottomHRight = (bottomHalf, bbox[1] + labelHeight)
-
-    labtopHleft = (bottomHalf, bbox[1] + padding)
-    labbottomRight = (bbox[3], bbox[1] + labelHeight)
-
-    im = cv2.rectangle(im, labtopLeft, labbottomHRight, (96, 255, 96), -1)
-    im = cv2.rectangle(im, labtopHleft, labbottomRight, (192, 255, 192), -1)
-
-    # id
-    # Center for the label
-    xCenter = bbox[2] + padding*2
-    yCenter = bbox[1] + padding*2 + labelHeight / 2
-    idCenterPos = (xCenter, yCenter)
-    font = cv2.FONT_HERSHEY_PLAIN
-    font_scale = 0.5
-    font_thickness = 1
-    black_color = (0, 0, 0)
-    text="ID: "+str(id)
-    im = cv2.putText(im, text, idCenterPos, font, font_scale, black_color, font_thickness, cv2.LINE_AA)
-
-    # vel
-    # Center for the label
-    xCenter = bottomHalf + padding
-    idCenterPos = (xCenter, yCenter)
-    if vel != None:
-        text = str(np.round(vel,decimals=2)) + " km/h"
-    else:
-        text = ""
-    im = cv2.putText(im, text, idCenterPos, font, font_scale, black_color, font_thickness, cv2.LINE_AA)
-
-    blue_color = (255, 0, 0)
-    # center bbox
-    if center == None:
-        im = cv2.circle(im, center, 4, blue_color, -1)
-
-    # kalman
-    if kalman == None:
-        im = cv2.circle(im, kalman, 4, (0, 0, 255), -1)
-
-    return im
-
-
 def euclideanDistance(point1, point2):
     dist = np.sqrt((point1[0]-point2[0])**2 + (point1[1]-point2[1])**2)
     return dist

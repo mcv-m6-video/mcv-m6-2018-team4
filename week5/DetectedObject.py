@@ -37,6 +37,7 @@ class detectedObject:
         self.bboxList.append(bbox)
         self.framesList.append(nFrame)
 
-    def updateVelocity(self, velocity):
-        self.velocities.append(velocity)
+    def updateVelocity(self, velocity, frame_step):
+        for i in range(frame_step):
+            self.velocities.append(velocity)
 

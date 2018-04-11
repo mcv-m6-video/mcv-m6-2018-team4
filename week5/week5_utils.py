@@ -33,11 +33,17 @@ def mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset, prints=True
 
     elif dataset == 'traffic':
         results = morphology_traffic(results, conn, prints=True)
+
+    elif dataset == 'sequence_parc_nova_icaria':
+        results = morphology_traffic(results, conn, prints=True)
     else:
         print "Invalid dataset name"
         return
 
-    metrics = results_evaluation(results, test_GT, prints)
+    if test_GT == []:
+        metrics = [0]
+    else:
+        metrics = results_evaluation(results, test_GT, prints)
 
     return results, metrics
 

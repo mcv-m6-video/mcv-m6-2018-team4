@@ -118,9 +118,6 @@ def drawBBox(im, bbox, id, vel=None, center=None, kalman=None):
     labtopHleft = (bottomHalf, bbox[1] + padding)
     labbottomRight = (bbox[3], bbox[1] + labelHeight)
 
-    # bottomHRight = (bottomLeft, map(lambda x: x/2, bottomRight))
-    # topHLeft = (map(lambda x: x/2, bottomLeft), bottomRight)
-
     im = cv2.rectangle(im, labtopLeft, labbottomHRight, (96, 255, 96), -1)
     im = cv2.rectangle(im, labtopHleft, labbottomRight, (192, 255, 192), -1)
 

@@ -143,12 +143,6 @@ def objectTrackerCV2(images, masks, distThreshold, verbose=False):
         #cv2.imshow('frame', mask)
         #cv2.waitKey(0)
 
-        """
-        Para cada connected component:
-        1.- Comprobar IOU para ver si es el mismo
-        2.- En tal caso hacer el update BBox (ahora si) basandonos en el bbox de cc
-        3.- Hacemos init del algoritmo
-        """
         # cv2.imshow('frame', im_bb)
         # cv2.waitKey(0)
 

@@ -2,7 +2,9 @@
 ### Master in Computer Vision - M6 Video analysis - Team 4
 <p align="justify"><b>Overview:</b> In this project we focus in concepts and techniques of video processing, mainly for surveillance applications. We focus on outdoor video sequences, basically of traffic monitoring.</p>
 
-![alt text](https://github.com/mcv-m6-video/mcv-m6-2018-team4/blob/master/figs/tracking.gif "Example on highway dataset")
+<p align="center">
+<img src="https://github.com/mcv-m6-video/mcv-m6-2018-team4/blob/master/figs/tracking.gif" alt="Example on highway dataset" height="256">
+</p>
 
 ## System's pipeline
 1. Input video

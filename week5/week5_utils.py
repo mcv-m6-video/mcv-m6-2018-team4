@@ -243,7 +243,7 @@ def make_gif(results, gifname):
         ims.append([im])
 
     anim = animation.ArtistAnimation(fig, ims, interval=len(results), blit=True)
-    anim.save(gifname, writer='imagemagick', fps=5)
+    anim.save(gifname, writer='imagemagick', fps=10)
 
     elapsed = time.time() - t
     sys.stdout.write(str(elapsed) + ' sec \n\n')

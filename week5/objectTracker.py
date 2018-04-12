@@ -40,7 +40,8 @@ def objectTracker(images, masks, distThreshold, verbose=False):
             # Make all the detections not visible
             if((i- detection.framesList[-1])>5 and not detection.finished):
                 detection.finished = True
-                if verbose: print "Object "+ str(detection.id)+ "deleted"
+                if verbose:
+                    print "Object "+ str(detection.id)+ "deleted"
 
         cc_mask = measure.label(mask, background=0) #get conected components
         nlbl = cc_mask.flatten().max()
@@ -53,15 +54,16 @@ def objectTracker(images, masks, distThreshold, verbose=False):
             minDist = np.inf
             objectFound = False
 
-            print "Label "+ str(lbl)
+            if verbose:
+                print "Label "+ str(lbl)
 
             for detection in detections:
                 if not detection.finished:
                     # Predict position with Kalman
                     prediction = detection.kalman.predict()
                     dist = euclideanDistance(object.center, prediction)
-
-                    print "\t dist to " + str(detection.id)+ ": " +  str(dist)
+                    if verbose:
+                        print "\t dist to " + str(detection.id)+ ": " +  str(dist)
                     # Search the nearest object
                     if(dist < distThreshold):
                         if dist < minDist:
@@ -70,24 +72,30 @@ def objectTracker(images, masks, distThreshold, verbose=False):
                             objectFound = True
 
             if objectFound:
-                # Update Kalman
-                nearest_detection.kalman.update(object.center)
+                if(nearest_detection.framesList[-1] < i):
+                    # Update Kalman
+                    nearest_detection.kalman.update(object.center)
 
-                # Make detection visible and update the Bounding Box
-                nearest_detection.visible = True
-                nearest_detection.updateBBox(object.bbox, i)
-                print "\n\t assigned to " + str(nearest_detection.id)
-            else:
+                    # Make detection visible and update the Bounding Box
+                    nearest_detection.visible = True
+                    nearest_detection.updateBBox(object.bbox, i)
+                    if verbose:
+                        print "\n\t assigned to " + str(nearest_detection.id)
+                else:
+                    objectFound = False
+
+            if not objectFound:
                 # Add the new detected object to the detections list
                 car_counter +=1
                 object.id = car_counter
                 detections.append(object)
-                print "\n\t Created object " + str(nearest_detection.id)
+                if verbose:
+                    print "\n\t Created object " + str(nearest_detection.id)
 
         # Draw the bounding boxes for the visible detections
-        for detection in detections:
-            if not detection.finished:
-                im_bb = drawBBox(im_bb, detection.bbox, detection.id, center=(int(detection.center[1]),int(detection.center[0])), kalman=(int(detection.kalman.priorEstimateY), int(detection.kalman.priorEstimateX)))
+        # for detection in detections:
+        #     if not detection.finished:
+        #         im_bb = drawBBox(im_bb, detection.bbox, detection.id, center=(int(detection.center[1]),int(detection.center[0])), kalman=(int(detection.kalman.priorEstimateY), int(detection.kalman.priorEstimateX)))
 
         # cv2.imshow('frame', im_bb)
         # cv2.waitKey(0)

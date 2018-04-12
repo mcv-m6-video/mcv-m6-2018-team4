@@ -25,7 +25,7 @@ class detectedObject:
         self.posList = [self.center]
         self.bboxList = [self.bbox]
         self.framesList = [self.nFrame]
-        self.velocities = [0]
+        self.velocities = [50]
 
         self.kalman = KalmanFilter(self.center)
 

@@ -114,7 +114,7 @@ def main():
     # Extract masks from sequences
     results, metrics = mask_pipeline(train, test, test_GT, alpha, ro, conn, p, dataset_name, prints=True, ROI=ROI, valid_pixels=valid_pixels)
 
-    # make_gif_mask(results)
+    make_gif_mask(results)
 
     # Perform the tracking
     images_bb, detections = objectTracker(test, results, distThreshold)

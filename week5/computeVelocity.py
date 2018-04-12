@@ -16,9 +16,13 @@ def computeVelocity_own(images, detections):
     p1 = np.array([points[0,0], points[0,1], 1])
     p2 = np.array([points[1,0], points[1,1], 1])
 
-    H =np.array([[-0.00933262047476400,	1.25094484415116,	-204.171484829449    ],
-                 [ 0.322802008471952,  	0.492556909522902,	 -42.8032678476063   ],
-                 [-1.97412767096888e-06,0.00224106725153738,  -0.0266465643937424]])
+    # H =np.array([[-0.00933262047476400,	1.25094484415116,	-204.171484829449    ],
+    #              [ 0.322802008471952,  	0.492556909522902,	 -42.8032678476063   ],
+    #              [-1.97412767096888e-06,0.00224106725153738,  -0.0266465643937424]])
+
+    H = np.array([[-0.729452734014885, -0.297141608098521, 85.4043267941782],
+                  [0.0119609003945710, -1.19656747018213,   131.687711887598],
+                  [5.57976613691146e-05, -0.00271531878836268,   0.0424222720888309]])
 
     im_warped = cv2.warpPerspective(image0, H, (image0.shape[1],image0.shape[0]))
 
@@ -32,7 +36,7 @@ def computeVelocity_own(images, detections):
     p2_aereal = np.matmul(H,p2.transpose())
     p2_aereal = p2_aereal/p2_aereal[2]
 
-    scale_factor = line_longitude/abs(p1_aereal[0]-p2_aereal[0]);
+    scale_factor = line_longitude/abs(p1_aereal[1]-p2_aereal[1]);
     fps = 20
 
     print "scale factor: " + str(scale_factor)
@@ -53,8 +57,8 @@ def computeVelocity_own(images, detections):
                 p2_aereal = p2_aereal / p2_aereal[2]
 
                 distance = (p2_aereal - p1_aereal)
-                distance = np.sqrt((distance[0]**2)+(distance[1]**2))*scale_factor
-                # distance = abs(distance[0])*scale_factor
+                # distance = np.sqrt((distance[0]**2)+(distance[1]**2))*scale_factor
+                distance = abs(distance[1])*scale_factor
 
                 time = (detection.framesList[i] - detection.framesList[i-frame_step])*(1./fps)
 
@@ -122,8 +126,7 @@ def computeVelocity(images, detections):
                 distance = (p2_aereal - p1_aereal)
                 distance = np.sqrt((distance[0]**2)+(distance[1]**2))*scale_factor
 
-                time = (detection.framesList[i] - detection.framesList[i-frame_step])*(1./25)
-
+                time = (detection.framesList[i] - detection.framesList[i-frame_step])*(1./30)
                 detection.updateVelocity(distance/time,frame_step)
 
             # print (distance/time)*3.6

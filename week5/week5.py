@@ -1,4 +1,5 @@
 from objectTracker import *
+from objectTrackerCV2 import objectTrackerCV2
 from week5_utils import *
 from dataset import Dataset
 from computeVelocity import *
@@ -117,6 +118,7 @@ def main():
 
     # Perform the tracking
     images_bb, detections = objectTracker(test, results, distThreshold)
+    #detections = objectTrackerCV2(test, results)
 
     # Compute velocities
     if dataset_name == 'week5_dataset':

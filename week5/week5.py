@@ -8,8 +8,8 @@ def main():
 
     # dataset_name = 'highway'
     # dataset_name = 'traffic'
-    dataset_name = 'traffic_stab'
-    # dataset_name = 'week5_dataset'
+    # dataset_name = 'traffic_stab'
+    dataset_name = 'week5_dataset'
 
     # dataset_name = 'sequence_parc_nova_icaria'
 
@@ -131,9 +131,14 @@ def main():
 def drawBBoxes(images,detections):
     new_velocity_weight = 0.3
     for detection in detections:
+        mean_velocities = []
         for i in range(1,len(detection.framesList)):
             mean_velocity = (detection.velocities[i])*new_velocity_weight + (detection.velocities[i-1])*(1-new_velocity_weight)
-            images[detection.framesList[i]] = drawBBox(images[detection.framesList[i]], detection.bboxList[i], detection.id, vel=np.round(mean_velocity,decimals=2))
+            mean_velocity = mean_velocity+ 60
+            images[detection.framesList[i]] = drawBBox(images[detection.framesList[i]], detection.bboxList[i], detection.id, vel=np.round(mean_velocity,decimals=2),limit=mean_velocity>80)
+            mean_velocities.append(mean_velocity)
+        print "Car " + str(detection.id) + ": " + str(np.mean(np.array(mean_velocities)))
+
     for i in range(len(images)):
         cv2.imshow("frame",images[i])
         cv2.waitKey(0)
@@ -163,11 +168,14 @@ def get_valid_mask(sequence):
     return valid_frames
 
 
-def drawBBox(im, bbox, id, vel=None, center=None, kalman=None):
+def drawBBox(im, bbox, id, vel=None, center=None, kalman=None, limit=False):
     # bounding box
     topLeft = (bbox[2], bbox[0])
     bottomRight = (bbox[3], bbox[1])
-    color = (0, 255, 0)
+    if not limit:
+        color = (0, 255, 0)
+    else:
+        color = (0, 0, 255)
     border_size = 2
     im = cv2.rectangle(im, topLeft, bottomRight, color, border_size)
 
